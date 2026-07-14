@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PhishGuard — Phishing Simulation & Detection Platform</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07090f;
+  --bg2:#0c0f18;
+  --surf:#111520;
+  --surf2:#161c2a;
+  --surf3:#1c2435;
+  --border:#ffffff0c;
+  --border2:#ffffff16;
+  --border3:#ffffff24;
+  --text:#dce6f5;
+  --text2:#7a8ba8;
+  --text3:#3d4f68;
+  --red:#ff3d5a;
+  --red-d:#ff3d5a1a;
+  --red-b:#ff3d5a35;
+  --orange:#ff7a2f;
+  --orange-d:#ff7a2f1a;
+  --orange-b:#ff7a2f35;
+  --yellow:#f5c842;
+  --yellow-d:#f5c8421a;
+  --yellow-b:#f5c84235;
+  --green:#00d47e;
+  --green-d:#00d47e1a;
+  --green-b:#00d47e35;
+  --blue:#4f9eff;
+  --blue-d:#4f9eff1a;
+  --blue-b:#4f9eff35;
+  --purple:#a78bfa;
+  --purple-d:#a78bfa1a;
+  --purple-b:#a78bfa35;
+  --teal:#00e0d0;
+  --teal-d:#00e0d01a;
+  --teal-b:#00e0d035;
+  --r:8px;
+  --r2:14px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border3);border-radius:99px}
+
+/* ═══ LAYOUT ═══════════════════════════════════════════ */
+.shell{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:230px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0}
+.content{flex:1;overflow-y:auto;padding:22px}
+.page{display:none}.page.active{display:block}
+
+/* ═══ SIDEBAR ═══════════════════════════════════════════ */
+.sb-logo{padding:18px 16px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sb-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--red),var(--orange));display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.sb-name{font-size:14px;font-weight:700;letter-spacing:-.02em}
+.sb-ver{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.sb-section{padding:14px 14px 5px;font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.1em;text-transform:uppercase}
+.nav{display:flex;align-items:center;gap:9px;padding:8px 12px;margin:1px 8px;border-radius:var(--r);cursor:pointer;font-size:13px;color:var(--text2);transition:all .15s;border:none;background:none;width:calc(100% - 16px);text-align:left;font-family:'DM Sans',sans-serif}
+.nav i{font-size:16px;flex-shrink:0}
+.nav:hover{background:var(--surf);color:var(--text)}
+.nav.active{background:var(--red-d);color:var(--red);border:1px solid var(--red-b)}
+.nav .nb{margin-left:auto;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;background:var(--red-d);color:var(--red);border:1px solid var(--red-b);padding:1px 6px;border-radius:99px}
+.nb-green{background:var(--green-d)!important;color:var(--green)!important;border-color:var(--green-b)!important}
+.sb-foot{margin-top:auto;padding:12px;border-top:1px solid var(--border)}
+.stat-mini{background:var(--surf2);border:1px solid var(--border2);border-radius:var(--r);padding:9px 11px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.sm-item{text-align:center}
+.sm-val{font-size:16px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.sm-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+
+/* ═══ TOPBAR ════════════════════════════════════════════ */
+.tb-title{font-size:14px;font-weight:600}
+.tb-sub{font-size:12px;color:var(--text2)}
+.phase-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:600;border:1px solid}
+.live-dot{width:7px;height:7px;border-radius:99px;background:var(--green);animation:pls 2s infinite}
+@keyframes pls{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ═══ CARDS ════════════════════════════════════════════ */
+.card{background:var(--surf);border:1px solid var(--border);border-radius:var(--r2);padding:18px}
+.card-hd{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.card-hd i{font-size:15px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+
+/* ═══ STAT CARDS ════════════════════════════════════════ */
+.sc{background:var(--surf);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px}
+.sc-val{font-size:28px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1}
+.sc-lbl{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-top:5px}
+.sc.red .sc-val{color:var(--red)} .sc.orange .sc-val{color:var(--orange)} .sc.green .sc-val{color:var(--green)} .sc.blue .sc-val{color:var(--blue)} .sc.yellow .sc-val{color:var(--yellow)} .sc.purple .sc-val{color:var(--purple)}
+
+/* ═══ BUTTONS ═══════════════════════════════════════════ */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap}
+.btn-red{background:var(--red);color:#fff}.btn-red:hover{opacity:.85}
+.btn-green{background:var(--green);color:#000}.btn-green:hover{opacity:.85}
+.btn-blue{background:var(--blue-d);color:var(--blue);border:1px solid var(--blue-b)}.btn-blue:hover{background:var(--blue);color:#fff}
+.btn-ghost{background:var(--surf2);color:var(--text2);border:1px solid var(--border2)}.btn-ghost:hover{background:var(--surf3);color:var(--text)}
+.btn-orange{background:var(--orange-d);color:var(--orange);border:1px solid var(--orange-b)}.btn-orange:hover{background:var(--orange);color:#fff}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+
+/* ═══ FORM ══════════════════════════════════════════════ */
+.field{margin-bottom:11px}
+.field label{display:block;font-size:10.5px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
+.inp{width:100%;padding:9px 12px;background:var(--surf2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border .15s}
+.inp:focus{border-color:var(--red);box-shadow:0 0 0 2px var(--red-d)}
+select.inp{cursor:pointer}
+textarea.inp{resize:vertical;min-height:90px;line-height:1.6;font-family:'JetBrains Mono',monospace;font-size:12px}
+
+/* ═══ TERMINAL ══════════════════════════════════════════ */
+.term{background:#020408;border:1px solid var(--border2);border-radius:var(--r2);overflow:hidden;font-family:'JetBrains Mono',monospace;font-size:12.5px}
+.term-bar{background:var(--surf);padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.tdots{display:flex;gap:5px}
+.tdot{width:11px;height:11px;border-radius:99px}
+.tlab{font-size:11px;color:var(--text2);margin-left:6px}
+.term-body{padding:14px 16px;max-height:280px;overflow-y:auto;line-height:1.9}
+.tp{color:var(--green)} .ti{color:var(--teal)} .tw{color:var(--yellow)} .te{color:var(--red)} .td{color:var(--text3)} .tb2{color:var(--text)} .to{color:var(--orange)} .tpu{color:var(--purple)} .tbl2{color:var(--blue)}
+.blink{animation:bl 1s step-end infinite}@keyframes bl{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ═══ BADGES ════════════════════════════════════════════ */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:10.5px;font-weight:600;border:1px solid}
+.b-crit{background:var(--red-d);color:var(--red);border-color:var(--red-b)}
+.b-high{background:var(--orange-d);color:var(--orange);border-color:var(--orange-b)}
+.b-med{background:var(--yellow-d);color:var(--yellow);border-color:var(--yellow-b)}
+.b-low{background:var(--green-d);color:var(--green);border-color:var(--green-b)}
+.b-info{background:var(--blue-d);color:var(--blue);border-color:var(--blue-b)}
+.b-purple{background:var(--purple-d);color:var(--purple);border-color:var(--purple-b)}
+
+/* ═══ TABLES ════════════════════════════════════════════ */
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.tbl th{text-align:left;padding:7px 10px;color:var(--text3);font-size:10px;text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--border);font-weight:600}
+.tbl td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tbody tr:hover td{background:var(--surf2)}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* ═══ PROGRESS ══════════════════════════════════════════ */
+.prog-wrap{margin:10px 0}
+.prog-lbl{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:5px}
+.prog-track{height:5px;background:var(--surf3);border-radius:99px;overflow:hidden}
+.prog-fill{height:100%;border-radius:99px;transition:width .35s ease}
+
+/* ═══ EMAIL PREVIEW ═════════════════════════════════════ */
+.email-preview{background:#fff;border-radius:var(--r2);overflow:hidden;border:1px solid var(--border3)}
+.ep-header{background:#f8f9fa;border-bottom:1px solid #e0e0e0;padding:14px 18px}
+.ep-field{display:flex;gap:8px;margin-bottom:4px;font-size:12.5px;color:#333;font-family:'DM Sans',sans-serif}
+.ep-label{font-weight:600;color:#555;min-width:60px}
+.ep-val{color:#111}
+.ep-subj{font-size:14px;font-weight:700;color:#111;margin-top:8px;font-family:'DM Sans',sans-serif}
+.ep-body{padding:18px;font-family:'DM Sans',sans-serif;font-size:13px;color:#222;line-height:1.8;background:#fff}
+.ep-link{color:#1a73e8;text-decoration:underline;cursor:pointer}
+.ep-btn-fake{display:inline-block;background:#1a73e8;color:#fff;padding:9px 20px;border-radius:4px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;margin:8px 0;text-decoration:none}
+.ep-logo{font-size:22px;font-weight:700;color:#1a73e8;margin-bottom:10px}
+.ep-red{color:var(--red);background:var(--red-d);border:1px solid var(--red-b);border-radius:var(--r);padding:8px 10px;font-size:12px;margin-top:10px;font-family:'DM Sans',sans-serif}
+.ep-green{color:var(--green);background:var(--green-d);border:1px solid var(--green-b);border-radius:var(--r);padding:8px 10px;font-size:12px;margin-top:10px;font-family:'DM Sans',sans-serif}
+
+/* ═══ DETECTION METER ═══════════════════════════════════ */
+.det-meter{position:relative;height:12px;background:var(--surf3);border-radius:99px;overflow:hidden;margin:8px 0}
+.det-fill{height:100%;border-radius:99px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.indicator-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.ind-label{font-size:12px;color:var(--text2)}
+.ind-val{font-size:12px;font-family:'JetBrains Mono',monospace;font-weight:600}
+
+/* ═══ TIMELINE ══════════════════════════════════════════ */
+.tl{position:relative;padding-left:24px}
+.tl::before{content:'';position:absolute;left:7px;top:4px;bottom:4px;width:1px;background:var(--border2)}
+.tl-item{position:relative;margin-bottom:18px}
+.tl-dot{position:absolute;left:-20px;top:3px;width:13px;height:13px;border-radius:99px;border:2px solid;background:var(--bg)}
+.tl-dot.done{border-color:var(--green);background:var(--green)}
+.tl-dot.active{border-color:var(--teal);animation:gw .8s alternate infinite}
+.tl-dot.pend{border-color:var(--border3)}
+@keyframes gw{from{box-shadow:0 0 0 0 var(--teal)}to{box-shadow:0 0 0 5px transparent}}
+.tl-title{font-size:13px;font-weight:600;margin-bottom:2px}
+.tl-sub{font-size:11.5px;color:var(--text2);line-height:1.5}
+
+/* ═══ CODE BLOCK ════════════════════════════════════════ */
+.code{background:var(--bg);border:1px solid var(--border2);border-radius:var(--r);padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.85;overflow-x:auto;color:var(--teal)}
+.kw{color:var(--purple)} .fn{color:var(--blue)} .str{color:var(--green)} .cm{color:var(--text3)} .num{color:var(--orange)}
+
+/* ═══ PHISHING TABS ═════════════════════════════════════ */
+.tabs{display:flex;gap:2px;background:var(--surf2);border-radius:var(--r);padding:4px;margin-bottom:14px}
+.tab{flex:1;padding:8px 6px;text-align:center;font-size:12.5px;font-weight:500;border-radius:6px;cursor:pointer;transition:all .15s;color:var(--text2);border:none;background:none;font-family:'DM Sans',sans-serif}
+.tab.active{background:var(--surf);color:var(--text);border:1px solid var(--border2);font-weight:600}
+
+/* ═══ QUIZ ══════════════════════════════════════════════ */
+.quiz-opt{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--surf2);border:1px solid var(--border2);border-radius:var(--r);margin-bottom:7px;cursor:pointer;transition:all .15s;font-size:13px}
+.quiz-opt:hover{border-color:var(--border3);background:var(--surf3)}
+.quiz-opt.correct{background:var(--green-d);border-color:var(--green-b);color:var(--green)}
+.quiz-opt.wrong{background:var(--red-d);border-color:var(--red-b);color:var(--red)}
+.quiz-opt input[type=radio]{accent-color:var(--red);flex-shrink:0;margin-top:2px}
+.q-num{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.q-text{font-size:14px;font-weight:600;margin-bottom:10px;line-height:1.5}
+
+/* ═══ AWARENESS SCORE ═══════════════════════════════════ */
+.awareness-ring{width:100px;height:100px;position:relative;margin:0 auto 12px}
+.awareness-ring svg{transform:rotate(-90deg)}
+.awareness-ring circle{fill:none;stroke-linecap:round;transition:stroke-dashoffset .8s ease}
+.ring-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-pct{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--text)}
+.ring-sub{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+
+/* ═══ CAMPAIGN TABLE ════════════════════════════════════ */
+.camp-row{background:var(--surf2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.camp-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.camp-info{flex:1}
+.camp-name{font-size:13px;font-weight:600;margin-bottom:3px}
+.camp-meta{font-size:11px;color:var(--text2)}
+.camp-stats{display:flex;gap:12px;flex-shrink:0}
+.camp-stat{text-align:center}
+.camp-stat-val{font-size:16px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.camp-stat-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em}
+
+/* ═══ ALERT BANNER ══════════════════════════════════════ */
+.alert{border-radius:var(--r);padding:10px 14px;font-size:13px;line-height:1.6;border:1px solid;margin-bottom:12px}
+.alert-red{background:var(--red-d);border-color:var(--red-b);color:var(--red)}
+.alert-green{background:var(--green-d);border-color:var(--green-b);color:var(--green)}
+.alert-yellow{background:var(--yellow-d);border-color:var(--yellow-b);color:var(--yellow)}
+.alert-blue{background:var(--blue-d);border-color:var(--blue-b);color:var(--blue)}
+
+@media(max-width:700px){.sidebar{display:none}.g2,.g3,.g4{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ══════════════ SIDEBAR ══════════════ -->
+<nav class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-icon">🎣</div>
+    <div><div class="sb-name">PhishGuard</div><div class="sb-ver">v3.1 · Sim + Detect</div></div>
+  </div>
+
+  <div class="sb-section">Simulation</div>
+  <button class="nav active" onclick="goto('dashboard',this)"><i class="ti ti-dashboard"></i> Dashboard</button>
+  <button class="nav" onclick="goto('campaigns',this)"><i class="ti ti-mail-forward"></i> Campaigns <span class="nb" id="nbCamp">0</span></button>
+  <button class="nav" onclick="goto('builder',this)"><i class="ti ti-tools"></i> Email Builder</button>
+  <button class="nav" onclick="goto('spoof',this)"><i class="ti ti-world-www"></i> Fake Site Lab</button>
+
+  <div class="sb-section">Detection</div>
+  <button class="nav" onclick="goto('detector',this)"><i class="ti ti-shield-search"></i> Email Analyzer</button>
+  <button class="nav" onclick="goto('filter',this)"><i class="ti ti-filter"></i> Filter Engine</button>
+  <button class="nav" onclick="goto('urlscan',this)"><i class="ti ti-link"></i> URL Scanner</button>
+
+  <div class="sb-section">Awareness</div>
+  <button class="nav" onclick="goto('training',this)"><i class="ti ti-school"></i> Training <span class="nb nb-green" id="nbQuiz">Quiz</span></button>
+  <button class="nav" onclick="goto('report',this)"><i class="ti ti-chart-bar"></i> Report</button>
+  <button class="nav" onclick="goto('python',this)"><i class="ti ti-brand-python"></i> Python Scripts</button>
+
+  <div class="sb-foot">
+    <div class="stat-mini">
+      <div class="sm-item"><div class="sm-val" style="color:var(--red)" id="smSent">0</div><div class="sm-lbl">Sent</div></div>
+      <div class="sm-item"><div class="sm-val" style="color:var(--orange)" id="smClicked">0</div><div class="sm-lbl">Clicked</div></div>
+      <div class="sm-item"><div class="sm-val" style="color:var(--green)" id="smCaught">0</div><div class="sm-lbl">Caught</div></div>
+      <div class="sm-item"><div class="sm-val" style="color:var(--blue)" id="smScore">–</div><div class="sm-lbl">Score</div></div>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════════ MAIN ══════════════════ -->
+<div class="main">
+  <div class="topbar">
+    <div><div class="tb-title" id="pageTitle">Dashboard</div><div class="tb-sub" id="pageSub">Phishing Simulation & Detection Platform</div></div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="phase-tag" id="phaseTag" style="color:var(--red);border-color:var(--red-b);background:var(--red-d)"><span class="live-dot"></span> LIVE</span>
+    </div>
+  </div>
+  <div class="content">
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE: DASHBOARD
+══════════════════════════════════════════════════════ -->
+<div class="page active" id="page-dashboard">
+  <div class="g4" style="margin-bottom:14px">
+    <div class="sc red"><div class="sc-val" id="dSent">0</div><div class="sc-lbl">Emails Sent</div></div>
+    <div class="sc orange"><div class="sc-val" id="dClick">0</div><div class="sc-lbl">Links Clicked</div></div>
+    <div class="sc yellow"><div class="sc-val" id="dCred">0</div><div class="sc-lbl">Credentials Submitted</div></div>
+    <div class="sc green"><div class="sc-val" id="dAware">0%</div><div class="sc-lbl">Awareness Rate</div></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-hd"><i class="ti ti-activity" style="color:var(--red)"></i> Live Attack Feed</div>
+      <div id="liveFeed" style="font-size:12.5px;max-height:240px;overflow-y:auto">
+        <div style="color:var(--text3);text-align:center;padding:20px">Launch a campaign to see live events…</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><i class="ti ti-chart-pie" style="color:var(--purple)"></i> Click Rate by Department</div>
+      <div id="deptChart" style="font-size:12.5px"></div>
+    </div>
+  </div>
+  <div class="g3">
+    <div class="card">
+      <div class="card-hd"><i class="ti ti-fish-hook" style="color:var(--orange)"></i> Attack Techniques Used</div>
+      <div class="tl">
+        <div class="tl-item"><div class="tl-dot done"></div><div class="tl-title">Credential Harvesting</div><div class="tl-sub">Fake login pages mirroring real sites to steal usernames & passwords</div></div>
+        <div class="tl-item"><div class="tl-dot done"></div><div class="tl-title">Spear Phishing</div><div class="tl-sub">Targeted emails personalised with victim's name, role, and company data</div></div>
+        <div class="tl-item"><div class="tl-dot pend"></div><div class="tl-title">Vishing (Voice)</div><div class="tl-sub">Phone-based social engineering impersonating IT helpdesk</div></div>
+        <div class="tl-item"><div class="tl-dot pend"></div><div class="tl-title">Smishing (SMS)</div><div class="tl-sub">Text message phishing with malicious shortened URLs</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><i class="ti ti-shield" style="color:var(--green)"></i> Detection Status</div>
+      <div id="detStatus">
+        <div class="indicator-row"><span class="ind-label">Email Filter</span><span class="ind-val" style="color:var(--green)">ACTIVE</span></div>
+        <div class="det-meter"><div class="det-fill" style="width:92%;background:var(--green)"></div></div>
+        <div class="indicator-row" style="margin-top:8px"><span class="ind-label">URL Scanner</span><span class="ind-val" style="color:var(--green)">ACTIVE</span></div>
+        <div class="det-meter"><div class="det-fill" style="width:87%;background:var(--blue)"></div></div>
+        <div class="indicator-row" style="margin-top:8px"><span class="ind-label">SPF / DKIM</span><span class="ind-val" style="color:var(--yellow)">PARTIAL</span></div>
+        <div class="det-meter"><div class="det-fill" style="width:65%;background:var(--yellow)"></div></div>
+        <div class="indicator-row" style="margin-top:8px"><span class="ind-label">Awareness Score</span><span class="ind-val" style="color:var(--text)" id="awareScore">–</span></div>
+        <div class="det-meter"><div class="det-fill" id="awareFill" style="width:0%;background:var(--purple)"></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><i class="ti ti-alert-triangle" style="color:var(--yellow)"></i> Red Flags Checklist</div>
+      <div style="font-size:12.5px;display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:8px;color:var(--text2)"><i class="ti ti-x" style="color:var(--red);font-size:14px"></i> Urgent / threatening language</div>
+        <div style="display:flex;align-items:center;gap:8px;color:var(--text2)"><i class="ti ti-x" style="color:var(--red);font-size:14px"></i> Mismatched sender domain</div>
+        <div style="display:flex;align-items:center;gap:8px;color:var(--text2)"><i class="ti ti-x" style="color:var(--red);font-size:14px"></i> Suspicious URL / typosquatting</div>
+        <div style="display:flex;align-items:center;gap:8px;color:var(--text2)"><i class="ti ti-x" style="color:var(--red);font-size:14px"></i> Requests for credentials</div>
+        <div style="display:flex;align-items:center;gap:8px;color:var(--text2)"><i class="ti ti-x" style="color:var(--red);font-size:14px"></i> Grammar/spelling errors</div>
+        <div style="display:flex;align-items:center;gap:8px;color:var(--text2)"><i class="ti ti-x" style="color:var(--red);font-size:14px"></i> Unexpected attachment</div>
+        <div style="display:flex;align-items:center;gap:8px;color:var(--text2)"><i class="ti ti-x" style="color:var(--red);font-size:14px"></i> Generic greeting ("Dear Customer")</div>
+        <div style="display:flex;align-items:center;gap:8px;color:var(--text2)"><i class="ti ti-x" style="color:var(--red);font-size:14px"></i> Too-good-to-be-true offer</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE: CAMPAIGNS
+══════════════════════════════════════════════════════ -->
+<div class="page" id="page-campaigns">
+  <div class="g2">
+    <div class="card">
+      <div class="card-hd"><i class="ti ti-rocket" style="color:var(--red)"></i> Launch Campaign</div>
+      <div class="field"><label>Campaign Name</label><input class="inp" id="campName" placeholder="e.g. Q3 Security Awareness Test"/></div>
+      <div class="field"><label>Phishing Template</label>
+        <select class="inp" id="campTemplate">
+          <option value="paypal">PayPal — Account Suspension Alert</option>
+          <option value="office365">Microsoft 365 — Password Expiry</option>
+          <option value="hr">HR — Urgent Policy Update</option>
+          <option value="it">IT Helpdesk — Security Alert</option>
+          <option value="bank">Bank — Suspicious Transaction</option>
+          <option value="prize">Prize / Lottery Winner</option>
+        </select>
+      </div>
+      <div class="field"><label>Target Group</label>
+        <select class="inp" id="campGroup">
+          <option value="all">All Employees (250)</option>
+          <option value="exec">Executives (12)</option>
+          <option value="finance">Finance Team (34)</option>
+          <option value="hr">HR Department (18)</option>
+          <option value="it">IT Staff (22)</option>
+          <option value="random">Random 50</option>
+        </select>
+      </div>
+      <div class="field"><label>Difficulty Level</label>
+        <select class="inp" id="campDiff">
+          <option value="easy">Easy — Obvious phishing</option>
+          <option value="medium" selected>Medium — Realistic template</option>
+          <option value="hard">Hard — Sophisticated spear phish</option>
+        </select>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-red" onclick="launchCampaign()"><i class="ti ti-send"></i> Launch Campaign</button>
+        <button class="btn btn-ghost" onclick="clearCampaignForm()"><i class="ti ti-eraser"></i> Clear</button>
+      </div>
+      <div class="prog-wrap" id="campProg" style="display:none">
+        <div class="prog-lbl"><span id="campProgMsg">Sending…</span><span id="campProgPct">0%</span></div>
+        <div class="prog-track"><div class="prog-fill" style="background:var(--red)" id="campProgFill"></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><i class="ti ti-eye" style="color:var(--blue)"></i> Email Preview</div>
+      <div id="campPreview">
+        <div style="color:var(--text3);text-align:center;padding:30px;font-size:13px">Select a template to preview…</div>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hd"><i class="ti ti-list" style="color:var(--teal)"></i> Campaign History</div>
+    <div id="campHistory"><div style="color:var(--text3);text-align:center;padding:20px;font-size:13px">No campaigns launched yet.</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE: EMAIL BUILDER
+══════════════════════════════════════════════════════ -->
+<div class="page" id="page-builder">
+  <div class="g2">
+    <div class="card">
+      <div class="card-hd"><i class="ti ti-pencil" style="color:var(--orange)"></i> Craft Phishing Email</div>
+      <div class="field"><label>From Name</label><input class="inp" id="bFrom" placeholder="PayPal Security" value="PayPal Security Team"/></div>
+      <div class="field"><label>From Email (Spoofed)</label><input class="inp" id="bEmail" placeholder="security@paypa1.com" value="security@paypa1-alert.com"/></div>
+      <div class="field"><label>Subject Line</label><input class="inp" id="bSubject" value="⚠️ URGENT: Your account access will be suspended in 24 hours"/></div>
+      <div class="field"><label>Urgency Level</label>
+        <select class="inp" id="bUrgency">
+          <option value="low">Low — Informational tone</option>
+          <option value="medium">Medium — Action required</option>
+          <option value="high" selected>High — Immediate threat</option>
+        </select>
+      </div>
+      <div class="field"><label>Social Engineering Tactic</label>
+        <select class="inp" id="bTactic" onchange="updateBuilderPreview()">
+          <option value="fear">Fear — Account suspension</option>
+          <option value="greed">Greed — Prize / reward</option>
+          <option value="authority">Authority — CEO / IT / HR</option>
+          <option value="curiosity">Curiosity — Shared document</option>
+          <option value="urgency">Urgency — Time-limited offer</option>
+        </select>
+      </div>
+      <div class="field"><label>Malicious Link URL</label><input class="inp" id="bLink" value="http://paypa1-secure-login.xyz/verify"/></div>
+      <div class="btn-row">
+        <button class="btn btn-orange" onclick="updateBuilderPreview()"><i class="ti ti-refresh"></i> Generate Preview</button>
+        <button class="btn btn-ghost" onclick="analyzeBuiltEmail()"><i class="ti ti-shield-search"></i> Run Detection</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><i class="ti ti-mail" style="color:var(--blue)"></i> Live Email Preview</div>
+      <div id="builderPreview">
+        <div style="color:var(--text3);text-align:center;padding:30px">Click "Generate Preview" to render…</div>
+      </div>
+    </div>
+  </div>
+  <div id="builderDetection" style="display:none">
+    <div class="card">
+      <div class="card-hd"><i class="ti ti-shield-exclamation" style="color:var(--red)"></i> Detection Analysis — This Email</div>
+      <div id="builderDetBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE: FAKE SITE LAB
+══════════════════════════════════════════════════════ -->
+<div class="page" id="page-spoof">
+  <div class="alert alert-yellow"><i class="ti ti-alert-triangle"></i> <strong>Educational only.</strong> These cloned pages demonstrate how attackers create convincing fake websites. No data is ever collected or transmitted.</div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-hd"><i class="ti ti-world" style="color:var(--red)"></i> Clone Site Generator</div>
+      <div class="field"><label>Brand to Impersonate</label>
+        <select class="inp" id="spoofBrand" onchange="updateSpoofPreview()">
+          <option value="paypal">PayPal</option>
+          <option value="google">Google</option>
+          <option value="microsoft">Microsoft 365</option>
+          <option value="amazon">Amazon</option>
+          <option value="bank">Generic Bank</option>
+        </select>
+      </div>
+      <div class="field"><label>Spoofed Domain</label><input class="inp" id="spoofDomain" value="paypa1-secure.xyz"/></div>
+      <div class="field"><label>Attack Goal</label>
+        <select class="inp" id="spoofGoal">
+          <option value="creds">Credential Harvesting</option>
+          <option value="card">Credit Card Theft</option>
+          <option value="malware">Malware Download</option>
+        </select>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-red" onclick="updateSpoofPreview()"><i class="ti ti-eye"></i> Preview Fake Site</button>
+      </div>
+      <div style="margin-top:16px">
+        <div class="card-hd"><i class="ti ti-crosshair" style="color:var(--yellow)"></i> Typosquatting Examples</div>
+        <table class="tbl">
+          <thead><tr><th>Legitimate</th><th>Spoofed</th><th>Technique</th></tr></thead>
+          <tbody>
+            <tr><td>paypal.com</td><td class="mono" style="color:var(--red)">paypa1.com</td><td><span class="badge b-crit">l → 1</span></td></tr>
+            <tr><td>google.com</td><td class="mono" style="color:var(--red)">g00gle.com</td><td><span class="badge b-high">o → 0</span></td></tr>
+            <tr><td>microsoft.com</td><td class="mono" style="color:var(--red)">micros0ft.net</td><td><span class="badge b-high">o → 0</span></td></tr>
+            <tr><td>amazon.com</td><td class="mono" style="color:var(--red)">arnazon.com</td><td><span class="badge b-med">m → rn</span></td></tr>
+            <tr><td>apple.com</td><td class="mono" style="color:var(--red)">apple-id.xyz</td><td><span class="badge b-med">Subdomain</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><i class="ti ti-layout" style="color:var(--blue)"></i> Fake Site Preview</div>
+      <div id="spoofPreview"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE: EMAIL ANALYZER (DETECTOR)
+══════════════════════════════════════════════════════ -->
+<div class="page" id="page-detector">
+  <div class="g2">
+    <div class="card">
+      <div class="card-hd"><i class="ti ti-scan" style="color:var(--teal)"></i> Paste Email for Analysis</div>
+      <div class="field"><label>From / Sender</label><input class="inp" id="detFrom" placeholder="security@paypa1-alert.com"/></div>
+      <div class="field"><label>Subject</label><input class="inp" id="detSubject" placeholder="URGENT: Verify your account immediately"/></div>
+      <div class="field"><label>Email Body</label><textarea class="inp" id="detBody" placeholder="Paste email body here…" style="min-height:120px"></textarea></div>
+      <div class="field"><label>Embedded URLs (one per line)</label><textarea class="inp" id="detUrls" placeholder="http://paypa1-secure.xyz/login" style="min-height:60px"></textarea></div>
+      <div class="btn-row">
+        <button class="btn btn-green" onclick="runDetector()"><i class="ti ti-shield-search"></i> Analyze Email</button>
+        <button class="btn btn-ghost" onclick="loadSamplePhish()"><i class="ti ti-fish-hook"></i> Load Sample Phish</button>
+        <button class="btn btn-ghost" onclick="loadSampleLegit()"><i class="ti ti-check"></i> Load Legit Sample</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><i class="ti ti-chart-radar" style="color:var(--purple)"></i> Detection Results</div>
+      <div id="detResults">
+        <div style="color:var(--text3);text-align:center;padding:30px;font-size:13px">Submit an email to see detection results…</div>
+      </div>
+    </div>
+  </div>
+  <div id="detDetail" style="display:none">
+    <div class="g3">
+      <div class="card"><div class="card-hd"><i class="ti ti-mail" style="color:var(--red)"></i> Sender Analysis</div><div id="detSender"></div></div>
+      <div class="card"><div class="card-hd"><i class="ti ti-link" style="color:var(--orange)"></i> URL Analysis</div><div id="detUrl"></div></div>
+      <div class="card"><div class="card-hd"><i class="ti ti-text-scan-2" style="color:var(--purple)"></i> Content Analysis</div><div id="detContent"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE: FILTER ENGINE
+══════════════════════════════════════════════════════ -->
+<div class="page" id="page-filter">
+  <div class="g2">
+    <div class="card">
+      <div class="card-hd"><i class="ti ti-adjustments" style="color:var(--blue)"></i> Email Filter Configuration</div>
+      <div style="font-size:13px;display:flex;flex-direction:column;gap:10px">
+        <div id="filterRules"></div>
+      </div>
+      <div class="btn-row" style="margin-top:14px">
+        <button class="btn btn-green" onclick="runFilterTest()"><i class="ti ti-player-play"></i> Test Filter Batch</button>
+        <button class="btn btn-ghost" onclick="resetFilters()"><i class="ti ti-refresh"></i> Reset</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><i class="ti ti-code" style="color:var(--green)"></i> Python Filter Logic</div>
+      <div class="code">
+<span class="kw">import</span> re
+<span class="kw">from</span> urllib.parse <span class="kw">import</span> urlparse
+
+<span class="cm"># Phishing detection filter</span>
+<span class="kw">class</span> <span class="fn">PhishingFilter</span>:
+  PHISH_KEYWORDS = [
+    <span class="str">'urgent'</span>, <span class="str">'verify now'</span>, <span class="str">'click here'</span>,
+    <span class="str">'account suspended'</span>, <span class="str">'action required'</span>,
+    <span class="str">'password expires'</span>, <span class="str">'confirm identity'</span>
+  ]
+  SUSPICIOUS_TLDS = [<span class="str">'.xyz'</span>, <span class="str">'.top'</span>, <span class="str">'.tk'</span>, <span class="str">'.ml'</span>]
+
+  <span class="kw">def</span> <span class="fn">analyze</span>(self, email):
+    score = <span class="num">0</span>
+    signals = []
+
+    <span class="cm"># Check keywords</span>
+    <span class="kw">for</span> kw <span class="kw">in</span> self.PHISH_KEYWORDS:
+      <span class="kw">if</span> kw <span class="kw">in</span> email[<span class="str">'body'</span>].lower():
+        score += <span class="num">15</span>
+        signals.append(f<span class="str">"Keyword: {kw}"</span>)
+
+    <span class="cm"># SPF/DKIM check</span>
+    <span class="kw">if not</span> email.get(<span class="str">'spf_pass'</span>):
+      score += <span class="num">25</span>
+      signals.append(<span class="str">"SPF FAIL"</span>)
+
+    <span class="cm"># URL analysis</span>
+    <span class="kw">for</span> url <span class="kw">in</span> email.get(<span class="str">'urls'</span>, []):
+      domain = urlparse(url).netloc
+      <span class="kw">if any</span>(tld <span class="kw">in</span> domain <span class="kw">for</span> tld <span class="kw">in</span> self.SUSPICIOUS_TLDS):
+        score += <span class="num">30</span>
+        signals.append(f<span class="str">"Suspicious TLD: {domain}"</span>)
+
+    <span class="kw">return</span> {
+      <span class="str">'phishing'</span>: score > <span class="num">50</span>,
+      <span class="str">'score'</span>: min(score, <span class="num">100</span>),
+      <span class="str">'signals'</span>: signals
+    }
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><i class="ti ti-test-pipe" style="color:var(--yellow)"></i> Filter Test Results</div>
+    <div id="filterResults"><div style="color:var(--text3);text-align:center;padding:20px;font-size:13px">Click "Test Filter Batch" to run emails through the filter…</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE: URL SCANNER
+══════════════════════════════════════════════════════ -->
+<div class="page" id="page-urlscan">
+  <div class="g2">
+    <div class="card">
+      <div class="card-hd"><i class="ti ti-link" style="color:var(--orange)"></i> URL / Domain Scanner</div>
+      <div class="field"><label>URL to Scan</label><input class="inp" id="urlInput" placeholder="http://paypa1-secure.xyz/login" value="http://paypa1-secure.xyz/login"/></div>
+      <div class="btn-row">
+        <button class="btn btn-red" onclick="runUrlScan()"><i class="ti ti-radar"></i> Scan URL</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('urlInput').value='https://www.paypal.com/signin'">Try Legit URL</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('urlInput').value='http://paypa1-secure.xyz/login'">Try Phish URL</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><i class="ti ti-shield" style="color:var(--green)"></i> Scan Result</div>
+      <div id="urlResult"><div style="color:var(--text3);text-align:center;padding:20px;font-size:13px">Enter a URL and click Scan…</div></div>
+    </div>
+  </div>
+  <div class="g3" id="urlDetail" style="display:none">
+    <div class="card"><div class="card-hd"><i class="ti ti-world" style="color:var(--blue)"></i> Domain Info</div><div id="urlDomain"></div></div>
+    <div class="card"><div class="card-hd"><i class="ti ti-certificate" style="color:var(--green)"></i> SSL / HTTPS</div><div id="urlSSL"></div></div>
+    <div class="card"><div class="card-hd"><i class="ti ti-database" style="color:var(--purple)"></i> Threat Intel</div><div id="urlThreat"></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE: TRAINING QUIZ
+══════════════════════════════════════════════════════ -->
+<div class="page" id="page-training">
+  <div class="g2">
+    <div class="card" style="grid-column:1/-1">
+      <div class="card-hd"><i class="ti ti-school" style="color:var(--blue)"></i> Phishing Awareness Training — Interactive Quiz</div>
+      <div id="quizArea"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE: REPORT
+══════════════════════════════════════════════════════ -->
+<div class="page" id="page-report">
+  <div class="g2">
+    <div class="card" style="border-color:var(--red-b)">
+      <div class="card-hd"><i class="ti ti-chart-bar" style="color:var(--red)"></i> Campaign Statistics</div>
+      <div id="reportStats"><div style="color:var(--text3);text-align:center;padding:20px">Launch a campaign first.</div></div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><i class="ti ti-award" style="color:var(--yellow)"></i> Awareness Assessment</div>
+      <div style="text-align:center;padding:10px 0">
+        <div class="awareness-ring">
+          <svg width="100" height="100" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="42" stroke="var(--surf3)" stroke-width="10"/>
+            <circle cx="50" cy="50" r="42" stroke="var(--purple)" stroke-width="10" stroke-dasharray="264" id="ringCircle" stroke-dashoffset="264"/>
+          </svg>
+          <div class="ring-label"><div class="ring-pct" id="ringPct">0%</div><div class="ring-sub">Aware</div></div>
+        </div>
+        <div id="reportRecommend" style="font-size:12.5px;color:var(--text2);line-height:1.7;text-align:left;margin-top:10px"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hd"><i class="ti ti-file-text" style="color:var(--teal)"></i> Full Report</div>
+    <div id="fullReport"><div style="color:var(--text3);text-align:center;padding:20px">Run campaigns and training to generate a full report.</div></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-blue" onclick="downloadReport()"><i class="ti ti-download"></i> Export Report</button>
+    <button class="btn btn-ghost" onclick="generateReport()"><i class="ti ti-refresh"></i> Refresh</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE: PYTHON SCRIPTS
+══════════════════════════════════════════════════════ -->
+<div class="page" id="page-python">
+  <div class="tabs">
+    <button class="tab active" onclick="switchPyTab('filter',this)">Email Filter</button>
+    <button class="tab" onclick="switchPyTab('urlcheck',this)">URL Checker</button>
+    <button class="tab" onclick="switchPyTab('header',this)">Header Analyzer</button>
+    <button class="tab" onclick="switchPyTab('simulate',this)">Sim Mailer</button>
+  </div>
+  <div id="py-filter" class="py-tab">
+    <div class="card"><div class="card-hd"><i class="ti ti-brand-python" style="color:var(--blue)"></i> phishing_filter.py</div>
+    <div class="code">
+<span class="cm">#!/usr/bin/env python3</span>
+<span class="cm">"""Phishing Email Detection Filter — Educational Tool"""</span>
+<span class="kw">import</span> re, json
+<span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass
+<span class="kw">from</span> typing <span class="kw">import</span> List, Dict
+<span class="kw">from</span> urllib.parse <span class="kw">import</span> urlparse
+
+PHISH_KEYWORDS = {
+  <span class="str">'urgency'</span>: [<span class="str">'urgent'</span>, <span class="str">'immediately'</span>, <span class="str">'action required'</span>, <span class="str">'expire'</span>, <span class="str">'suspended'</span>, <span class="str">'verify now'</span>, <span class="str">'24 hours'</span>, <span class="str">'account locked'</span>],
+  <span class="str">'credential'</span>: [<span class="str">'password'</span>, <span class="str">'username'</span>, <span class="str">'login'</span>, <span class="str">'sign in'</span>, <span class="str">'verify identity'</span>, <span class="str">'update your info'</span>],
+  <span class="str">'financial'</span>: [<span class="str">'bank account'</span>, <span class="str">'wire transfer'</span>, <span class="str">'credit card'</span>, <span class="str">'prize'</span>, <span class="str">'winner'</span>, <span class="str">'refund'</span>],
+  <span class="str">'threat'</span>: [<span class="str">'hacked'</span>, <span class="str">'compromised'</span>, <span class="str">'unauthorized access'</span>, <span class="str">'fraud detected'</span>]
+}
+SUSPICIOUS_TLDS   = {<span class="str">'.xyz'</span>, <span class="str">'.top'</span>, <span class="str">'.tk'</span>, <span class="str">'.ml'</span>, <span class="str">'.cf'</span>, <span class="str">'.gq'</span>, <span class="str">'.pw'</span>, <span class="str">'.click'</span>}
+KNOWN_BRANDS      = {<span class="str">'paypal'</span>, <span class="str">'microsoft'</span>, <span class="str">'amazon'</span>, <span class="str">'apple'</span>, <span class="str">'google'</span>, <span class="str">'netflix'</span>}
+
+<span class="kw">@dataclass</span>
+<span class="kw">class</span> <span class="fn">EmailAnalysis</span>:
+  phishing: bool
+  score: int
+  signals: List[str]
+  verdict: str
+
+<span class="kw">class</span> <span class="fn">PhishingFilter</span>:
+  <span class="kw">def</span> <span class="fn">analyze</span>(self, email: Dict) -> <span class="fn">EmailAnalysis</span>:
+    score, signals = <span class="num">0</span>, []
+    text = (email.get(<span class="str">'subject'</span>, <span class="str">''</span>) + <span class="str">' '</span> + email.get(<span class="str">'body'</span>, <span class="str">''</span>)).lower()
+
+    <span class="cm"># 1. Keyword scoring</span>
+    <span class="kw">for</span> category, words <span class="kw">in</span> PHISH_KEYWORDS.items():
+      hits = [w <span class="kw">for</span> w <span class="kw">in</span> words <span class="kw">if</span> w <span class="kw">in</span> text]
+      <span class="kw">if</span> hits:
+        score += len(hits) * <span class="num">12</span>
+        signals.append(f<span class="str">"[{category.upper()}] {', '.join(hits)}"</span>)
+
+    <span class="cm"># 2. Sender domain check</span>
+    sender = email.get(<span class="str">'from'</span>, <span class="str">''</span>)
+    domain = sender.split(<span class="str">'@'</span>)[-<span class="num">1</span>].lower() <span class="kw">if</span> <span class="str">'@'</span> <span class="kw">in</span> sender <span class="kw">else</span> <span class="str">''</span>
+    <span class="kw">if any</span>(tld <span class="kw">in</span> domain <span class="kw">for</span> tld <span class="kw">in</span> SUSPICIOUS_TLDS):
+      score += <span class="num">35</span>; signals.append(f<span class="str">"Suspicious TLD in sender: {domain}"</span>)
+    <span class="kw">for</span> brand <span class="kw">in</span> KNOWN_BRANDS:
+      <span class="kw">if</span> brand <span class="kw">in</span> text <span class="kw">and</span> brand <span class="kw">not in</span> domain:
+        score += <span class="num">20</span>; signals.append(f<span class="str">"Brand impersonation: {brand}"</span>)
+
+    <span class="cm"># 3. SPF / DKIM</span>
+    <span class="kw">if not</span> email.get(<span class="str">'spf_pass'</span>, <span class="kw">False</span>):
+      score += <span class="num">25</span>; signals.append(<span class="str">"SPF check FAILED"</span>)
+    <span class="kw">if not</span> email.get(<span class="str">'dkim_pass'</span>, <span class="kw">False</span>):
+      score += <span class="num">15</span>; signals.append(<span class="str">"DKIM signature missing"</span>)
+
+    <span class="cm"># 4. URL analysis</span>
+    <span class="kw">for</span> url <span class="kw">in</span> email.get(<span class="str">'urls'</span>, []):
+      parsed = urlparse(url)
+      netloc = parsed.netloc.lower()
+      <span class="kw">if any</span>(tld <span class="kw">in</span> netloc <span class="kw">for</span> tld <span class="kw">in</span> SUSPICIOUS_TLDS):
+        score += <span class="num">30</span>; signals.append(f<span class="str">"Phishing URL: {url}"</span>)
+      <span class="kw">if</span> re.search(<span class="str">r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}'</span>, netloc):
+        score += <span class="num">25</span>; signals.append(<span class="str">"IP address in URL"</span>)
+
+    score = min(score, <span class="num">100</span>)
+    verdict = <span class="str">"PHISHING"</span> <span class="kw">if</span> score > <span class="num">50</span> <span class="kw">else</span> <span class="str">"SUSPICIOUS"</span> <span class="kw">if</span> score > <span class="num">25</span> <span class="kw">else</span> <span class="str">"CLEAN"</span>
+    <span class="kw">return</span> <span class="fn">EmailAnalysis</span>(score > <span class="num">50</span>, score, signals, verdict)
+
+<span class="cm"># Example usage</span>
+<span class="kw">if</span> __name__ == <span class="str">'__main__'</span>:
+  f = <span class="fn">PhishingFilter</span>()
+  test = {
+    <span class="str">'from'</span>: <span class="str">'security@paypa1-alert.xyz'</span>,
+    <span class="str">'subject'</span>: <span class="str">'URGENT: Verify your account now!'</span>,
+    <span class="str">'body'</span>: <span class="str">'Your account has been suspended. Click here to verify identity.'</span>,
+    <span class="str">'urls'</span>: [<span class="str">'http://paypa1-secure.xyz/login'</span>],
+    <span class="str">'spf_pass'</span>: <span class="kw">False</span>, <span class="str">'dkim_pass'</span>: <span class="kw">False</span>
+  }
+  result = f.analyze(test)
+  print(json.dumps(result.__dict__, indent=<span class="num">2</span>))
+    </div></div>
+  </div>
+  <div id="py-urlcheck" class="py-tab" style="display:none">
+    <div class="card"><div class="card-hd"><i class="ti ti-brand-python" style="color:var(--blue)"></i> url_scanner.py</div>
+    <div class="code">
+<span class="cm">#!/usr/bin/env python3</span>
+<span class="cm">"""URL Phishing Scanner — checks domains against threat signals"""</span>
+<span class="kw">import</span> re, socket
+<span class="kw">from</span> urllib.parse <span class="kw">import</span> urlparse
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime
+
+SUSPICIOUS_TLDS = [<span class="str">'.xyz'</span>, <span class="str">'.top'</span>, <span class="str">'.tk'</span>, <span class="str">'.ml'</span>, <span class="str">'.cf'</span>, <span class="str">'.gq'</span>, <span class="str">'.pw'</span>, <span class="str">'.click'</span>, <span class="str">'.loan'</span>]
+BRANDS = [<span class="str">'paypal'</span>, <span class="str">'microsoft'</span>, <span class="str">'google'</span>, <span class="str">'amazon'</span>, <span class="str">'apple'</span>, <span class="str">'netflix'</span>, <span class="str">'facebook'</span>]
+
+<span class="kw">def</span> <span class="fn">scan_url</span>(url: str) -> dict:
+  signals, score = [], <span class="num">0</span>
+  <span class="kw">try</span>:
+    parsed = urlparse(url)
+    domain = parsed.netloc.lower()
+    path   = parsed.path.lower()
+
+    <span class="cm"># No HTTPS</span>
+    <span class="kw">if</span> parsed.scheme != <span class="str">'https'</span>:
+      score += <span class="num">20</span>; signals.append(<span class="str">"No HTTPS encryption"</span>)
+
+    <span class="cm"># Suspicious TLD</span>
+    <span class="kw">if any</span>(domain.endswith(t) <span class="kw">for</span> t <span class="kw">in</span> SUSPICIOUS_TLDS):
+      score += <span class="num">35</span>; signals.append(f<span class="str">"High-risk TLD: {domain}"</span>)
+
+    <span class="cm"># IP address instead of domain</span>
+    <span class="kw">if</span> re.match(<span class="str">r'\d+\.\d+\.\d+\.\d+'</span>, domain):
+      score += <span class="num">40</span>; signals.append(<span class="str">"IP address used instead of domain"</span>)
+
+    <span class="cm"># Brand keyword in non-brand domain</span>
+    <span class="kw">for</span> brand <span class="kw">in</span> BRANDS:
+      <span class="kw">if</span> brand <span class="kw">in</span> domain <span class="kw">and</span> <span class="kw">not</span> domain.endswith(f<span class="str">'{brand}.com'</span>):
+        score += <span class="num">30</span>; signals.append(f<span class="str">"Brand impersonation: {brand}"</span>)
+
+    <span class="cm"># Excessive subdomains</span>
+    <span class="kw">if</span> domain.count(<span class="str">'.'</span>) > <span class="num">3</span>:
+      score += <span class="num">15</span>; signals.append(<span class="str">"Excessive subdomain depth"</span>)
+
+    <span class="cm"># Suspicious path keywords</span>
+    <span class="kw">for</span> kw <span class="kw">in</span> [<span class="str">'login'</span>, <span class="str">'verify'</span>, <span class="str">'secure'</span>, <span class="str">'update'</span>, <span class="str">'confirm'</span>]:
+      <span class="kw">if</span> kw <span class="kw">in</span> path:
+        score += <span class="num">10</span>; signals.append(f<span class="str">"Suspicious path keyword: /{kw}"</span>)
+
+    verdict = <span class="str">"MALICIOUS"</span> <span class="kw">if</span> score >= <span class="num">50</span> <span class="kw">else</span> <span class="str">"SUSPICIOUS"</span> <span class="kw">if</span> score >= <span class="num">25</span> <span class="kw">else</span> <span class="str">"CLEAN"</span>
+    <span class="kw">return</span> {<span class="str">'url'</span>: url, <span class="str">'domain'</span>: domain, <span class="str">'score'</span>: min(score,<span class="num">100</span>), <span class="str">'verdict'</span>: verdict, <span class="str">'signals'</span>: signals}
+  <span class="kw">except</span> Exception <span class="kw">as</span> e:
+    <span class="kw">return</span> {<span class="str">'error'</span>: str(e)}
+
+<span class="kw">if</span> __name__ == <span class="str">'__main__'</span>:
+  urls = [<span class="str">'http://paypa1-secure.xyz/login'</span>, <span class="str">'https://www.paypal.com/signin'</span>]
+  <span class="kw">for</span> u <span class="kw">in</span> urls:
+    r = <span class="fn">scan_url</span>(u)
+    print(f<span class="str">"\n[{r['verdict']}] {r['url']}"</span>)
+    <span class="kw">for</span> s <span class="kw">in</span> r.get(<span class="str">'signals'</span>,[]):
+      print(f<span class="str">"  → {s}"</span>)
+    </div></div>
+  </div>
+  <div id="py-header" class="py-tab" style="display:none">
+    <div class="card"><div class="card-hd"><i class="ti ti-brand-python" style="color:var(--blue)"></i> email_header_analyzer.py</div>
+    <div class="code">
+<span class="cm">#!/usr/bin/env python3</span>
+<span class="cm">"""Parse and analyze raw email headers for phishing signals"""</span>
+<span class="kw">import</span> email, re
+<span class="kw">from</span> email <span class="kw">import</span> policy
+
+<span class="kw">def</span> <span class="fn">analyze_headers</span>(raw_email: str) -> dict:
+  msg = email.message_from_string(raw_email, policy=policy.default)
+  results = {}
+
+  <span class="cm"># Extract key headers</span>
+  results[<span class="str">'from'</span>]       = msg.get(<span class="str">'From'</span>, <span class="str">''</span>)
+  results[<span class="str">'reply_to'</span>]   = msg.get(<span class="str">'Reply-To'</span>, <span class="str">'None'</span>)
+  results[<span class="str">'return_path'</span>]= msg.get(<span class="str">'Return-Path'</span>, <span class="str">'None'</span>)
+  results[<span class="str">'x_mailer'</span>]   = msg.get(<span class="str">'X-Mailer'</span>, <span class="str">'None'</span>)
+
+  <span class="cm"># SPF result from Received-SPF header</span>
+  spf_header = msg.get(<span class="str">'Received-SPF'</span>, <span class="str">''</span>)
+  results[<span class="str">'spf'</span>] = <span class="str">'pass'</span> <span class="kw">if</span> <span class="str">'pass'</span> <span class="kw">in</span> spf_header.lower() <span class="kw">else</span> <span class="str">'FAIL'</span>
+
+  <span class="cm"># DKIM from Authentication-Results</span>
+  auth = msg.get(<span class="str">'Authentication-Results'</span>, <span class="str">''</span>)
+  results[<span class="str">'dkim'</span>] = <span class="str">'pass'</span> <span class="kw">if</span> <span class="str">'dkim=pass'</span> <span class="kw">in</span> auth <span class="kw">else</span> <span class="str">'FAIL'</span>
+  results[<span class="str">'dmarc'</span>]= <span class="str">'pass'</span> <span class="kw">if</span> <span class="str">'dmarc=pass'</span> <span class="kw">in</span> auth <span class="kw">else</span> <span class="str">'FAIL'</span>
+
+  <span class="cm"># Hop analysis — trace email routing</span>
+  received = msg.get_all(<span class="str">'Received'</span>, [])
+  results[<span class="str">'hops'</span>] = len(received)
+  ips = re.findall(<span class="str">r'\[(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\]'</span>, <span class="str">' '</span>.join(received))
+  results[<span class="str">'origin_ip'</span>] = ips[-<span class="num">1</span>] <span class="kw">if</span> ips <span class="kw">else</span> <span class="str">'Unknown'</span>
+
+  <span class="cm"># Reply-To mismatch (common phishing signal)</span>
+  from_domain = re.search(<span class="str">r'@([\w.]+)'</span>, results[<span class="str">'from'</span>])
+  rt_domain   = re.search(<span class="str">r'@([\w.]+)'</span>, results[<span class="str">'reply_to'</span>])
+  results[<span class="str">'reply_mismatch'</span>] = (
+    from_domain <span class="kw">and</span> rt_domain <span class="kw">and</span>
+    from_domain.group(<span class="num">1</span>) != rt_domain.group(<span class="num">1</span>)
+  )
+  <span class="kw">return</span> results
+
+<span class="cm"># Run</span>
+<span class="kw">if</span> __name__ == <span class="str">'__main__'</span>:
+  <span class="kw">with</span> open(<span class="str">'suspicious.eml'</span>) <span class="kw">as</span> f:
+    headers = <span class="fn">analyze_headers</span>(f.read())
+    <span class="kw">for</span> k, v <span class="kw">in</span> headers.items():
+      print(f<span class="str">"{k:20} {v}"</span>)
+    </div></div>
+  </div>
+  <div id="py-simulate" class="py-tab" style="display:none">
+    <div class="card"><div class="card-hd"><i class="ti ti-brand-python" style="color:var(--blue)"></i> simulation_mailer.py</div>
+    <div class="code">
+<span class="cm">#!/usr/bin/env python3</span>
+<span class="cm">"""Phishing Simulation Mailer — sends tracked test emails to employees"""</span>
+<span class="kw">import</span> smtplib, uuid, csv
+<span class="kw">from</span> email.mime.multipart <span class="kw">import</span> MIMEMultipart
+<span class="kw">from</span> email.mime.text <span class="kw">import</span> MIMEText
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime
+
+SMTP_CONFIG = {
+  <span class="str">'host'</span>: <span class="str">'mail.yourcompany.com'</span>,   <span class="cm"># Your internal SMTP</span>
+  <span class="str">'port'</span>: <span class="num">587</span>,
+  <span class="str">'user'</span>: <span class="str">'phish-sim@yourcompany.com'</span>,
+  <span class="str">'pass'</span>: <span class="str">'YOUR_SMTP_PASS'</span>
+}
+
+TRACKING_SERVER = <span class="str">'https://your-tracking-server.com'</span>  <span class="cm"># For click tracking</span>
+
+<span class="kw">def</span> <span class="fn">create_phish_email</span>(target: dict, campaign_id: str) -> MIMEMultipart:
+  token = str(uuid.uuid4())
+  track_url = f<span class="str">"{TRACKING_SERVER}/click/{campaign_id}/{token}"</span>
+  img_url   = f<span class="str">"{TRACKING_SERVER}/open/{campaign_id}/{token}"</span>
+
+  msg = <span class="fn">MIMEMultipart</span>(<span class="str">'alternative'</span>)
+  msg[<span class="str">'Subject'</span>] = <span class="str">'⚠️ Action Required: Verify Your Account'</span>
+  msg[<span class="str">'From'</span>]    = <span class="str">'IT Security <it-security@yourcompany-alert.com>'</span>
+  msg[<span class="str">'To'</span>]      = target[<span class="str">'email'</span>]
+
+  html = f<span class="str">"""
+  &lt;p&gt;Dear {target['name']},&lt;/p&gt;
+  &lt;p&gt;A security review requires you to verify your credentials.&lt;/p&gt;
+  &lt;a href="{track_url}" style="background:#0078d4;color:#fff;padding:10px 20px"&gt;
+    Verify Now
+  &lt;/a&gt;
+  &lt;img src="{img_url}" width="1" height="1" /&gt;  &lt;!-- Open tracking pixel --&gt;
+  """</span>
+
+  msg.attach(<span class="fn">MIMEText</span>(html, <span class="str">'html'</span>))
+  <span class="kw">return</span> msg, token
+
+<span class="kw">def</span> <span class="fn">run_campaign</span>(targets_csv: str, campaign_name: str):
+  campaign_id = str(uuid.uuid4())[:<span class="num">8</span>]
+  log = []
+
+  <span class="kw">with</span> smtplib.<span class="fn">SMTP</span>(SMTP_CONFIG[<span class="str">'host'</span>], SMTP_CONFIG[<span class="str">'port'</span>]) <span class="kw">as</span> smtp:
+    smtp.<span class="fn">starttls</span>()
+    smtp.<span class="fn">login</span>(SMTP_CONFIG[<span class="str">'user'</span>], SMTP_CONFIG[<span class="str">'pass'</span>])
+
+    <span class="kw">with</span> open(targets_csv) <span class="kw">as</span> f:
+      <span class="kw">for</span> row <span class="kw">in</span> csv.<span class="fn">DictReader</span>(f):
+        msg, token = <span class="fn">create_phish_email</span>(row, campaign_id)
+        smtp.<span class="fn">send_message</span>(msg)
+        log.append({<span class="str">'email'</span>: row[<span class="str">'email'</span>], <span class="str">'token'</span>: token, <span class="str">'sent'</span>: datetime.now().isoformat()})
+        print(f<span class="str">"✓ Sent to {row['email']}"</span>)
+
+  <span class="cm"># Save campaign log for tracking</span>
+  <span class="kw">with</span> open(f<span class="str">'campaign_{campaign_id}.json'</span>, <span class="str">'w'</span>) <span class="kw">as</span> out:
+    json.dump({<span class="str">'campaign'</span>: campaign_name, <span class="str">'id'</span>: campaign_id, <span class="str">'emails'</span>: log}, out)
+  print(f<span class="str">"\n[✓] Campaign '{campaign_name}' sent to {len(log)} targets."</span>)
+
+<span class="kw">if</span> __name__ == <span class="str">'__main__'</span>:
+  <span class="fn">run_campaign</span>(<span class="str">'employees.csv'</span>, <span class="str">'Q3 Awareness Test'</span>)
+    </div></div>
+  </div>
+</div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+// ─── State ─────────────────────────────────────────────────────────────
+const S = {
+  sent:0, clicked:0, creds:0, aware:0,
+  campaigns:[],
+  quizScore:0, quizDone:false,
+  filterRules:{keywords:true, spf:true, dkim:true, url:true, domain:true}
+};
+
+// ─── Navigation ──────────────────────────────────────────────────────────
+const META={
+  dashboard:{t:'Dashboard',s:'Overview — Live Attack & Detection Status',ph:'LIVE'},
+  campaigns:{t:'Campaigns',s:'Launch & track phishing simulation campaigns',ph:'Phase 1'},
+  builder:{t:'Email Builder',s:'Craft and analyze phishing emails',ph:'Phase 2'},
+  spoof:{t:'Fake Site Lab',s:'Study cloned phishing websites & typosquatting',ph:'Phase 3'},
+  detector:{t:'Email Analyzer',s:'Detect phishing signals in real emails',ph:'Detection'},
+  filter:{t:'Filter Engine',s:'Python-powered email filter with rule config',ph:'Detection'},
+  urlscan:{t:'URL Scanner',s:'Analyze URLs for phishing indicators',ph:'Detection'},
+  training:{t:'Awareness Training',s:'Interactive quiz — test your phishing knowledge',ph:'Training'},
+  report:{t:'VAPT Report',s:'Full campaign analytics and awareness scoring',ph:'Report'},
+  python:{t:'Python Scripts',s:'Source code — email filter, URL scanner, mailer',ph:'Code'},
+};
+function goto(page,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  const m=META[page];
+  document.getElementById('pageTitle').textContent=m.t;
+  document.getElementById('pageSub').textContent=m.s;
+  document.getElementById('phaseTag').textContent=m.ph;
+  if(page==='report')generateReport();
+  if(page==='training'&&!S.quizDone)buildQuiz();
+  if(page==='campaigns')updateCampPreview();
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function prog(fillId,msgId,pctId,pct,msg){
+  document.getElementById(fillId).style.width=pct+'%';
+  document.getElementById(msgId).textContent=msg;
+  document.getElementById(pctId).textContent=pct+'%';
+}
+function updateSidebar(){
+  ['smSent','smClicked','smCaught','smScore'].forEach((id,i)=>{
+    const vals=[S.sent,S.clicked,S.sent-S.clicked,S.aware?S.aware+'%':'–'];
+    document.getElementById(id).textContent=vals[i];
+  });
+  ['dSent','dClick','dCred','dAware'].forEach((id,i)=>{
+    const vals=[S.sent,S.clicked,S.creds,S.aware?S.aware+'%':'0%'];
+    document.getElementById(id).textContent=vals[i];
+  });
+  if(S.aware){
+    document.getElementById('awareScore').textContent=S.aware+'%';
+    document.getElementById('awareFill').style.width=S.aware+'%';
+  }
+}
+
+// ─── Email Templates ──────────────────────────────────────────────────────
+const TEMPLATES={
+  paypal:{from:'service@paypa1-alerts.xyz',subj:'⚠️ Your PayPal account has been limited',body:`<div style="font-family:Arial,sans-serif;padding:16px;color:#222"><div class="ep-logo">PayPal</div><p>Dear Customer,</p><p>We've noticed <strong>unusual activity</strong> in your PayPal account. Your account has been <strong style="color:#c0392b">temporarily limited</strong>.</p><p>To restore full access, please verify your information within <strong>24 hours</strong>:</p><a class="ep-btn-fake" href="#">Verify My Account</a><p style="font-size:11px;color:#888">If you don't verify, your account will be permanently suspended.<br>PayPal Security Team</p><div class="ep-red">⚠️ RED FLAGS: Sender paypa1 (not paypal) · Suspicious TLD .xyz · Urgency language · Generic greeting</div></div>`},
+  office365:{from:'noreply@micros0ft-accounts.cc',subj:'Action Required: Your Microsoft password expires today',body:`<div style="font-family:Arial,sans-serif;padding:16px;color:#222"><div style="font-size:22px;font-weight:700;color:#0078d4;margin-bottom:10px">Microsoft</div><p>Dear User,</p><p>Your <strong>Microsoft 365 password</strong> will expire <strong style="color:#c0392b">today at 11:59 PM</strong>. You must update your password immediately to maintain access to your email and files.</p><a class="ep-btn-fake" style="background:#0078d4" href="#">Update Password Now</a><p style="font-size:11px;color:#888">Microsoft Account Team | Do not reply to this email</p><div class="ep-red">⚠️ RED FLAGS: micros0ft (o→0) · .cc TLD · Password expiry urgency · "Dear User" generic</div></div>`},
+  hr:{from:'hr-admin@company-portal.top',subj:'Urgent: Employee Policy Update — Action Required by Friday',body:`<div style="font-family:Arial,sans-serif;padding:16px;color:#222"><p><strong>Human Resources Department</strong></p><p>Dear Employee,</p><p>We are updating our <strong>employee benefits portal</strong>. All staff must log in and confirm their details by <strong>Friday 5PM</strong> or benefits will be suspended.</p><a class="ep-btn-fake" style="background:#2c3e50" href="#">Access HR Portal</a><p style="font-size:11px;color:#888">HR Department | Sent via company-portal.top</p><div class="ep-red">⚠️ RED FLAGS: External domain not company's real domain · Benefits suspension threat · Deadline pressure</div></div>`},
+  it:{from:'it-helpdesk@support-desk.xyz',subj:'Security Alert: Unauthorized Login Attempt on Your Account',body:`<div style="font-family:Arial,sans-serif;padding:16px;color:#222"><p>🔒 <strong>IT Security Team</strong></p><p>Dear Employee,</p><p>We detected an <strong style="color:#c0392b">unauthorized login attempt</strong> on your account from IP 45.33.32.156 (Russia). Please verify your identity immediately.</p><a class="ep-btn-fake" style="background:#c0392b" href="#">Secure My Account</a><p style="font-size:11px;color:#888">IT Helpdesk | Automated Security Alert</p><div class="ep-red">⚠️ RED FLAGS: Fear tactic (foreign IP) · External domain · "Immediately" urgency · Unknown helpdesk domain</div></div>`},
+  bank:{from:'alerts@chase-secure-banking.top',subj:'IMPORTANT: Suspicious Transaction Detected — Verify Now',body:`<div style="font-family:Arial,sans-serif;padding:16px;color:#222"><div style="font-size:22px;font-weight:700;color:#003087;margin-bottom:10px">Chase Bank</div><p>We have detected a <strong style="color:#c0392b">suspicious transaction of $4,299.00</strong> on your account ending in **7821.</p><p>If this was not you, please verify your account immediately to block the transaction:</p><a class="ep-btn-fake" style="background:#003087" href="#">Review Transaction</a><p style="font-size:11px;color:#888">Chase Bank Fraud Prevention | chase-secure-banking.top</p><div class="ep-red">⚠️ RED FLAGS: Fake domain (not chase.com) · Large transaction fear · Fake partial card number</div></div>`},
+  prize:{from:'claims@international-lottery2024.xyz',subj:'CONGRATULATIONS! You have been selected — $1,500,000 prize',body:`<div style="font-family:Arial,sans-serif;padding:16px;color:#222"><p style="font-size:18px;font-weight:700;color:#27ae60">🎉 CONGRATULATIONS!!!</p><p>You have been <strong>randomly selected</strong> as the winner of our <strong>International Lottery</strong>.</p><p><strong style="font-size:20px;color:#27ae60">Prize Amount: $1,500,000 USD</strong></p><p>To claim, send your full name and banking details to: <a href="#" class="ep-link">claims@lottery2024.xyz</a></p><p style="font-size:11px;color:#888">Offer expires in 48 hours. Act now!</p><div class="ep-red">⚠️ RED FLAGS: Too good to be true · Asks for banking info via email · Urgency · Generic lottery · .xyz TLD</div></div>`}
+};
+
+function updateCampPreview(){
+  const t=document.getElementById('campTemplate')?.value||'paypal';
+  const tmpl=TEMPLATES[t];
+  document.getElementById('campPreview').innerHTML=`
+    <div class="email-preview">
+      <div class="ep-header">
+        <div class="ep-field"><span class="ep-label">From:</span><span class="ep-val">${tmpl.from}</span></div>
+        <div class="ep-field"><span class="ep-label">Subject:</span><span class="ep-val">${tmpl.subj}</span></div>
+        <div class="ep-subj">${tmpl.subj}</div>
+      </div>
+      <div class="ep-body">${tmpl.body}</div>
+    </div>`;
+}
+document.getElementById('campTemplate')?.addEventListener('change',updateCampPreview);
+updateCampPreview();
+
+// ─── Launch Campaign ──────────────────────────────────────────────────────
+const GROUP_SIZES={all:250,exec:12,finance:34,hr:18,it:22,random:50};
+const CLICK_RATES={easy:.08,medium:.22,hard:.38};
+
+async function launchCampaign(){
+  const name=document.getElementById('campName').value||'Unnamed Campaign';
+  const tmplKey=document.getElementById('campTemplate').value;
+  const group=document.getElementById('campGroup').value;
+  const diff=document.getElementById('campDiff').value;
+  const sent=GROUP_SIZES[group];
+  const cr=CLICK_RATES[diff];
+  const clicked=Math.round(sent*cr);
+  const creds=Math.round(clicked*0.6);
+
+  document.getElementById('campProg').style.display='block';
+  const steps=['Generating personalised emails…','Connecting to SMTP relay…','Sending batch 1/3…','Sending batch 2/3…','Sending batch 3/3…','Collecting tracking data…'];
+  for(let i=0;i<steps.length;i++){
+    prog('campProgFill','campProgMsg','campProgPct',Math.round(((i+1)/steps.length)*100),steps[i]);
+    await sleep(350);
+  }
+
+  S.sent+=sent; S.clicked+=clicked; S.creds+=creds;
+  S.aware=Math.round(((sent-clicked)/sent)*100);
+  S.campaigns.push({name,tmpl:tmplKey,group,diff,sent,clicked,creds,cr:Math.round(cr*100),date:new Date().toLocaleDateString()});
+  document.getElementById('nbCamp').textContent=S.campaigns.length;
+  updateSidebar();
+  updateLiveFeed(clicked,sent,tmplKey);
+  updateDeptChart();
+  renderCampHistory();
+}
+
+function updateLiveFeed(clicked,sent,tmpl){
+  const feed=document.getElementById('liveFeed');
+  feed.innerHTML='';
+  const events=[];
+  const names=['Alice Chen','Bob Patel','Carol Singh','David Kim','Eve Johnson','Frank Liu','Grace Osei','Henry Müller'];
+  const depts=['Finance','HR','IT','Marketing','Ops','Executive'];
+  const now=Date.now();
+  for(let i=0;i<Math.min(clicked,8);i++){
+    events.push({type:'click',name:names[i%names.length],dept:depts[i%depts.length],ts:new Date(now-i*12000).toLocaleTimeString()});
+  }
+  events.sort((a,b)=>b.ts.localeCompare(a.ts));
+  events.forEach(ev=>{
+    const d=document.createElement('div');
+    d.style.cssText='display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px';
+    d.innerHTML=`<span style="color:var(--red);font-size:13px">⚠</span><span style="color:var(--text)">${ev.name}</span><span style="color:var(--text2)">(${ev.dept})</span><span style="color:var(--red)">clicked link</span><span style="color:var(--text3);margin-left:auto">${ev.ts}</span>`;
+    feed.appendChild(d);
+  });
+  const safe=sent-clicked;
+  const s=document.createElement('div');
+  s.style.cssText='text-align:center;padding:8px;font-size:12px;color:var(--green);margin-top:4px';
+  s.textContent=`✓ ${safe} employees did NOT click — awareness rate ${Math.round(safe/sent*100)}%`;
+  feed.appendChild(s);
+}
+
+function updateDeptChart(){
+  const depts=[{name:'Finance',rate:38},{name:'HR',rate:32},{name:'Marketing',rate:28},{name:'Operations',rate:22},{name:'IT',rate:12},{name:'Executive',rate:45}];
+  const div=document.getElementById('deptChart');
+  div.innerHTML='';
+  depts.forEach(d=>{
+    const col=d.rate>35?'var(--red)':d.rate>25?'var(--orange)':d.rate>15?'var(--yellow)':'var(--green)';
+    div.innerHTML+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:12px;color:var(--text2);min-width:82px">${d.name}</span><div style="flex:1;height:7px;background:var(--surf3);border-radius:99px;overflow:hidden"><div style="height:100%;width:${d.rate*2}%;background:${col};border-radius:99px;transition:width .6s"></div></div><span style="font-size:11px;font-family:'JetBrains Mono',monospace;color:${col};min-width:32px">${d.rate}%</span></div>`;
+  });
+}
+
+function renderCampHistory(){
+  const div=document.getElementById('campHistory');
+  div.innerHTML='';
+  S.campaigns.slice().reverse().forEach(c=>{
+    const icon={paypal:'💳',office365:'📧',hr:'👔',it:'🔒',bank:'🏦',prize:'🎉'}[c.tmpl]||'📨';
+    const diff_cls=c.diff==='hard'?'b-crit':c.diff==='medium'?'b-high':'b-low';
+    div.innerHTML+=`<div class="camp-row">
+      <div class="camp-icon" style="background:var(--red-d)">${icon}</div>
+      <div class="camp-info"><div class="camp-name">${c.name}</div><div class="camp-meta">${c.date} · ${c.group} group · <span class="badge ${diff_cls}">${c.diff}</span></div></div>
+      <div class="camp-stats">
+        <div class="camp-stat"><div class="camp-stat-val" style="color:var(--text)">${c.sent}</div><div class="camp-stat-lbl">Sent</div></div>
+        <div class="camp-stat"><div class="camp-stat-val" style="color:var(--red)">${c.clicked}</div><div class="camp-stat-lbl">Clicked</div></div>
+        <div class="camp-stat"><div class="camp-stat-val" style="color:var(--orange)">${c.cr}%</div><div class="camp-stat-lbl">Click Rate</div></div>
+      </div>
+    </div>`;
+  });
+}
+function clearCampaignForm(){
+  document.getElementById('campName').value='';
+  document.getElementById('campProg').style.display='none';
+}
+
+// ─── Builder ──────────────────────────────────────────────────────────────
+const TACTIC_BODIES={
+  fear:`Dear Customer,\n\nYour account has been flagged for suspicious activity and will be <strong>permanently suspended in 24 hours</strong>.\n\nTo prevent suspension, verify your identity immediately:`,
+  greed:`Dear Valued Member,\n\nCONGRATULATIONS! You have been selected to receive a <strong>$500 gift card</strong>.\n\nClaim your reward before it expires:`,
+  authority:`Dear Employee,\n\nThis is the <strong>CEO's Office</strong>. We need you to complete an urgent task immediately.\n\nPlease log in to the secure portal to view your instructions:`,
+  curiosity:`Hi,\n\nI've shared an important document with you that requires your review.\n\nClick below to access the shared file:`,
+  urgency:`NOTICE: This offer expires in <strong>47 minutes</strong>.\n\nYou have been pre-approved for an exclusive upgrade. Act now before your slot is taken:`
+};
+
+function updateBuilderPreview(){
+  const from=document.getElementById('bFrom').value;
+  const email=document.getElementById('bEmail').value;
+  const subj=document.getElementById('bSubject').value;
+  const tactic=document.getElementById('bTactic').value;
+  const link=document.getElementById('bLink').value;
+  const body=TACTIC_BODIES[tactic];
+  document.getElementById('builderPreview').innerHTML=`
+    <div class="email-preview">
+      <div class="ep-header">
+        <div class="ep-field"><span class="ep-label">From:</span><span class="ep-val">${from} &lt;${email}&gt;</span></div>
+        <div class="ep-field"><span class="ep-label">To:</span><span class="ep-val">victim@company.com</span></div>
+        <div class="ep-subj">${subj}</div>
+      </div>
+      <div class="ep-body">
+        <p style="margin-bottom:12px">${body}</p>
+        <a class="ep-btn-fake" href="#">Click Here →</a>
+        <p style="font-size:11px;color:#888;margin-top:12px">Link destination: <span style="color:#c0392b">${link}</span></p>
+      </div>
+    </div>`;
+  document.getElementById('builderDetection').style.display='none';
+}
+
+function analyzeBuiltEmail(){
+  const from=document.getElementById('bEmail').value;
+  const subj=document.getElementById('bSubject').value;
+  const link=document.getElementById('bLink').value;
+  const tactic=document.getElementById('bTactic').value;
+  const body=TACTIC_BODIES[tactic];
+  const score=runAnalysis(from,subj,body,[link]);
+  const div=document.getElementById('builderDetBody');
+  div.innerHTML=renderAnalysisResult(score,from,[link]);
+  document.getElementById('builderDetection').style.display='block';
+}
+
+// ─── Detection Engine ─────────────────────────────────────────────────────
+const PHISH_KW=['urgent','immediately','action required','expire','suspended','verify now','limited time','act now','24 hours','account locked','warning','alert','click here','click the link','confirm identity','update your info','password','login credentials'];
+const SAFE_KW=['regards','sincerely','thank you','as discussed','please find','attached','meeting','agenda','follow up'];
+const SUSP_TLDS=['.xyz','.top','.gq','.ml','.cf','.tk','.pw','.cc','.click','.loan','.work','.download'];
+const BRANDS=['paypal','amazon','netflix','microsoft','apple','google','chase','facebook','instagram'];
+
+function runAnalysis(from,subj,body,urls){
+  const text=(subj+' '+body).toLowerCase();
+  let score=0; const signals=[];
+  PHISH_KW.forEach(k=>{if(text.includes(k)){score+=8;signals.push({type:'keyword',text:k,sev:'high'})}});
+  SAFE_KW.forEach(k=>{if(text.includes(k))score-=5});
+  const domain=(from.split('@')[1]||from).toLowerCase();
+  if(SUSP_TLDS.some(t=>domain.endsWith(t))){score+=35;signals.push({type:'domain',text:'Suspicious TLD: '+domain,sev:'critical'})}
+  BRANDS.forEach(b=>{if(text.includes(b)&&!domain.includes(b)){score+=25;signals.push({type:'brand',text:'Brand impersonation: '+b,sev:'critical'})}});
+  if(!/^[a-z0-9.-]+\.(com|org|net|gov|edu|co\.[a-z]{2})$/.test(domain)){score+=15;signals.push({type:'domain',text:'Non-standard sender domain',sev:'medium'})}
+  urls.forEach(u=>{
+    if(!u)return;
+    if(SUSP_TLDS.some(t=>u.includes(t))){score+=30;signals.push({type:'url',text:'Phishing URL: '+u,sev:'critical'})}
+    if(!u.startsWith('https://')){score+=15;signals.push({type:'url',text:'No HTTPS',sev:'high'})}
+    BRANDS.forEach(b=>{if(u.toLowerCase().includes(b)&&!u.toLowerCase().includes(b+'.com')){score+=25;signals.push({type:'url',text:'Brand spoofed in URL: '+b,sev:'critical'})}});
+  });
+  return {score:Math.min(score,100),signals,isPhish:score>45};
+}
+
+function renderAnalysisResult(result,from,urls){
+  const col=result.isPhish?'var(--red)':result.score>25?'var(--yellow)':'var(--green)';
+  const verdict=result.isPhish?'⚠ PHISHING DETECTED':result.score>25?'⚡ SUSPICIOUS':'✓ CLEAN';
+  let html=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+    <div style="font-size:18px;font-weight:700;color:${col}">${verdict}</div>
+    <div style="text-align:right"><div style="font-size:26px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${col}">${result.score}%</div><div style="font-size:11px;color:var(--text2)">Risk Score</div></div>
+  </div>
+  <div class="det-meter"><div class="det-fill" style="width:${result.score}%;background:${col}"></div></div>`;
+  if(result.signals.length){
+    html+=`<div style="margin-top:12px"><div style="font-size:11px;color:var(--text2);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.07em">Detected Signals</div>`;
+    result.signals.forEach(s=>{
+      const sc=s.sev==='critical'?'b-crit':s.sev==='high'?'b-high':'b-med';
+      html+=`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span class="badge ${sc}">${s.type}</span><span style="color:var(--text2)">${s.text}</span></div>`;
+    });
+    html+='</div>';
+  }
+  return html;
+}
+
+function runDetector(){
+  const from=document.getElementById('detFrom').value;
+  const subj=document.getElementById('detSubject').value;
+  const body=document.getElementById('detBody').value;
+  const urls=document.getElementById('detUrls').value.split('\n').filter(Boolean);
+  if(!from&&!subj&&!body){alert('Please fill in at least From, Subject, or Body.');return;}
+  const result=runAnalysis(from,subj,body,urls);
+  document.getElementById('detResults').innerHTML=renderAnalysisResult(result,from,urls);
+  document.getElementById('detDetail').style.display='block';
+
+  // Sender analysis
+  const domain=(from.split('@')[1]||from).toLowerCase();
+  const suspTld=SUSP_TLDS.some(t=>domain.endsWith(t));
+  document.getElementById('detSender').innerHTML=`
+    <div class="indicator-row"><span class="ind-label">Domain</span><span class="ind-val mono" style="color:${suspTld?'var(--red)':'var(--green)'};font-size:11px">${domain||'—'}</span></div>
+    <div class="det-meter"><div class="det-fill" style="width:${suspTld?90:15}%;background:${suspTld?'var(--red)':'var(--green)'}"></div></div>
+    <div style="font-size:12px;color:var(--text2);margin-top:8px">SPF: <span style="color:var(--yellow)">Not verifiable</span></div>
+    <div style="font-size:12px;color:var(--text2)">DKIM: <span style="color:var(--yellow)">Not verifiable</span></div>
+    <div style="font-size:12px;color:var(--text2)">DMARC: <span style="color:var(--yellow)">Not verifiable</span></div>`;
+
+  // URL analysis
+  let urlHtml='';
+  if(!urls.length)urlHtml='<div style="color:var(--text3);font-size:12px">No URLs provided</div>';
+  urls.forEach(u=>{
+    const bad=SUSP_TLDS.some(t=>u.includes(t))||!u.startsWith('https://');
+    urlHtml+=`<div style="display:flex;align-items:center;gap:6px;padding:5px 0;font-size:12px;border-bottom:1px solid var(--border)"><i class="ti ti-${bad?'alert-triangle':'check'}" style="color:var(--${bad?'red':'green'});font-size:13px"></i><span class="mono" style="color:var(--text2);overflow:hidden;text-overflow:ellipsis">${u.substring(0,42)}${u.length>42?'…':''}</span></div>`;
+  });
+  document.getElementById('detUrl').innerHTML=urlHtml||'<div style="color:var(--text3);font-size:12px">No URLs detected</div>';
+
+  // Content
+  const kwHits=PHISH_KW.filter(k=>body.toLowerCase().includes(k)||subj.toLowerCase().includes(k));
+  let contHtml=`<div class="indicator-row"><span class="ind-label">Phish keywords</span><span class="ind-val" style="color:${kwHits.length>3?'var(--red)':kwHits.length>0?'var(--yellow)':'var(--green)'}">${kwHits.length}</span></div>`;
+  kwHits.slice(0,4).forEach(k=>{contHtml+=`<div class="badge b-crit" style="margin:2px;font-size:10px">${k}</div>`;});
+  document.getElementById('detContent').innerHTML=contHtml;
+}
+
+function loadSamplePhish(){
+  document.getElementById('detFrom').value='security@paypa1-alerts.xyz';
+  document.getElementById('detSubject').value='URGENT: Your PayPal account has been limited!';
+  document.getElementById('detBody').value='Dear Customer,\n\nWe have detected unauthorized access to your PayPal account. Your account has been temporarily suspended.\n\nYou must verify your identity immediately to restore full access. Failure to verify within 24 hours will result in permanent account termination.\n\nPayPal Security Team';
+  document.getElementById('detUrls').value='http://paypa1-secure-verify.xyz/login\nhttp://192.168.1.100/phish';
+}
+function loadSampleLegit(){
+  document.getElementById('detFrom').value='sarah.jones@company.com';
+  document.getElementById('detSubject').value='Q3 Project Status Report — Please Review';
+  document.getElementById('detBody').value='Hi Team,\n\nPlease find attached the Q3 project report. Key highlights are on pages 3-5.\n\nLet me know if you have any questions. Our next sync is scheduled for Friday at 2pm.\n\nBest regards,\nSarah';
+  document.getElementById('detUrls').value='https://docs.google.com/document/d/abc123';
+}
+
+// ─── Filter Engine ─────────────────────────────────────────────────────────
+const FILTER_RULES_DEF=[
+  {id:'keywords',label:'Keyword Detection',desc:'Flag emails containing urgency/phishing keywords',weight:30,enabled:true},
+  {id:'spf',label:'SPF Verification',desc:'Reject emails failing Sender Policy Framework',weight:25,enabled:true},
+  {id:'dkim',label:'DKIM Signature Check',desc:'Verify DomainKeys Identified Mail signatures',weight:20,enabled:true},
+  {id:'url',label:'URL Threat Analysis',desc:'Scan embedded URLs against threat intel database',weight:35,enabled:true},
+  {id:'domain',label:'Domain Reputation',desc:'Check sender domain age, TLD, and blacklists',weight:20,enabled:true},
+];
+
+function buildFilterRules(){
+  const div=document.getElementById('filterRules');
+  div.innerHTML='';
+  FILTER_RULES_DEF.forEach(r=>{
+    div.innerHTML+=`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--surf2);border:1px solid var(--border2);border-radius:var(--r);margin-bottom:8px">
+      <div style="flex:1"><div style="font-size:13px;font-weight:600;margin-bottom:2px">${r.label}</div><div style="font-size:11.5px;color:var(--text2)">${r.desc}</div></div>
+      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+        <span class="badge b-info">+${r.weight}pts</span>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;color:var(--text2)">
+          <input type="checkbox" ${r.enabled?'checked':''} onchange="S.filterRules['${r.id}']=this.checked" style="accent-color:var(--green);width:14px;height:14px"> Enabled
+        </label>
+      </div>
+    </div>`;
+  });
+}
+
+const FILTER_TEST_EMAILS=[
+  {from:'security@paypa1.xyz',subj:'Urgent: Verify account now!',body:'Your account suspended. Click here immediately.',urls:['http://paypa1.xyz/login'],spf:false,dkim:false,real:true},
+  {from:'newsletter@medium.com',subj:'Your weekly digest is ready',body:'Here are top stories this week from people you follow.',urls:['https://medium.com/digest/abc'],spf:true,dkim:true,real:false},
+  {from:'it@company-portal.top',subj:'Password expires today',body:'Update your password immediately to avoid losing access.',urls:['http://company-portal.top/reset'],spf:false,dkim:false,real:true},
+  {from:'billing@amazon.com',subj:'Your order has shipped',body:'Your order #113-9283-1283 has been dispatched. Track it here.',urls:['https://www.amazon.com/track'],spf:true,dkim:true,real:false},
+  {from:'prizes@lottery-2024.ml',subj:'You have won $1,000,000!',body:'Claim your prize now. Send bank details to proceed.',urls:['http://claim-prize.ml/now'],spf:false,dkim:false,real:true},
+  {from:'hr@yourcompany.com',subj:'Q3 All-Hands Meeting Notes',body:'Please find attached the notes from our Q3 all-hands meeting.',urls:['https://drive.google.com/file/abc'],spf:true,dkim:true,real:false},
+];
+
+async function runFilterTest(){
+  const div=document.getElementById('filterResults');
+  div.innerHTML='<div style="color:var(--text2);font-size:13px">Running filter on batch emails…</div>';
+  await sleep(600);
+  let html='<table class="tbl"><thead><tr><th>#</th><th>From</th><th>Subject</th><th>SPF</th><th>DKIM</th><th>Score</th><th>Filter Decision</th><th>Actual</th><th>✓/✗</th></tr></thead><tbody>';
+  let correct=0;
+  FILTER_TEST_EMAILS.forEach((e,i)=>{
+    const result=runAnalysis(e.from,e.subj,e.body,e.urls);
+    result.score=Math.max(result.score,e.spf?0:20)+(e.dkim?0:15);
+    const flagged=result.score>45;
+    const isCorrect=flagged===e.real;
+    if(isCorrect)correct++;
+    const sc=result.score>60?'b-crit':result.score>35?'b-high':'b-low';
+    html+=`<tr>
+      <td style="color:var(--text3)">${i+1}</td>
+      <td class="mono" style="font-size:11px;color:var(--text2)">${e.from.substring(0,22)}…</td>
+      <td style="font-size:12px">${e.subj.substring(0,28)}…</td>
+      <td>${e.spf?'<span style="color:var(--green)">✓</span>':'<span style="color:var(--red)">✗</span>'}</td>
+      <td>${e.dkim?'<span style="color:var(--green)">✓</span>':'<span style="color:var(--red)">✗</span>'}</td>
+      <td><span class="badge ${sc}">${result.score}</span></td>
+      <td>${flagged?'<span style="color:var(--red)">🚫 BLOCKED</span>':'<span style="color:var(--green)">✓ ALLOWED</span>'}</td>
+      <td>${e.real?'<span style="color:var(--red)">Phishing</span>':'<span style="color:var(--green)">Legitimate</span>'}</td>
+      <td style="font-size:16px">${isCorrect?'✅':'❌'}</td>
+    </tr>`;
+  });
+  html+=`</tbody></table>`;
+  html+=`<div style="margin-top:12px;padding:10px 14px;background:var(--green-d);border:1px solid var(--green-b);border-radius:var(--r);font-size:13px;color:var(--green)"><strong>Filter Accuracy: ${Math.round(correct/FILTER_TEST_EMAILS.length*100)}%</strong> — ${correct}/${FILTER_TEST_EMAILS.length} correctly classified</div>`;
+  div.innerHTML=html;
+}
+
+function resetFilters(){FILTER_RULES_DEF.forEach(r=>r.enabled=true);buildFilterRules();}
+
+// ─── URL Scanner ──────────────────────────────────────────────────────────
+function runUrlScan(){
+  const url=document.getElementById('urlInput').value.trim();
+  if(!url){alert('Enter a URL.');return;}
+  const result=runAnalysis('test@test.com','test','test',[url]);
+  const domain=url.replace(/^https?:\/\//,'').split('/')[0];
+  const isHttps=url.startsWith('https://');
+  const suspTld=SUSP_TLDS.some(t=>domain.endsWith(t));
+  const col=result.isPhish?'var(--red)':result.score>25?'var(--yellow)':'var(--green)';
+  const verdict=result.isPhish?'⚠ MALICIOUS':'✓ CLEAN';
+  document.getElementById('urlResult').innerHTML=`
+    <div style="font-size:20px;font-weight:700;color:${col};margin-bottom:10px">${verdict}</div>
+    <div style="font-size:13px;margin-bottom:12px;color:var(--text2)">Risk score: <strong style="color:${col};font-family:'JetBrains Mono',monospace">${result.score}/100</strong></div>
+    <div class="det-meter"><div class="det-fill" style="width:${result.score}%;background:${col}"></div></div>
+    ${result.signals.map(s=>`<div style="font-size:12px;color:var(--text2);padding:4px 0;border-bottom:1px solid var(--border)"><span class="badge b-crit" style="margin-right:6px">${s.type}</span>${s.text}</div>`).join('')||'<div style="color:var(--green);font-size:12px;margin-top:8px">No phishing signals detected.</div>'}`;
+
+  document.getElementById('urlDetail').style.display='grid';
+  document.getElementById('urlDomain').innerHTML=`
+    <div style="font-size:12px;color:var(--text2)">Domain: <span class="mono" style="color:var(--text)">${domain}</span></div>
+    <div style="font-size:12px;color:var(--text2);margin-top:6px">TLD risk: <span style="color:${suspTld?'var(--red)':'var(--green)'}">${suspTld?'HIGH — suspicious TLD':'LOW'}</span></div>
+    <div style="font-size:12px;color:var(--text2);margin-top:4px">Brand impersonation: <span style="color:${result.signals.some(s=>s.type==='brand')?'var(--red)':'var(--green)'}">${result.signals.some(s=>s.type==='brand')?'DETECTED':'None'}</span></div>
+    <div style="font-size:12px;color:var(--text2);margin-top:4px">Subdomains: <span class="mono">${(domain.match(/\./g)||[]).length}</span></div>`;
+  document.getElementById('urlSSL').innerHTML=`
+    <div style="font-size:12px;color:var(--text2)">HTTPS: <span style="color:${isHttps?'var(--green)':'var(--red)'}">${isHttps?'✓ Encrypted':'✗ Plain HTTP'}</span></div>
+    <div style="font-size:12px;color:var(--text2);margin-top:6px">Certificate: <span style="color:${isHttps?'var(--green)':'var(--text3)'}">${isHttps?'Present':'Not available'}</span></div>
+    <div style="font-size:12px;color:var(--text2);margin-top:4px">Note: <span style="color:var(--yellow)">HTTPS ≠ safe. Phishing sites can use HTTPS too.</span></div>`;
+  document.getElementById('urlThreat').innerHTML=`
+    <div style="font-size:12px;color:var(--text2)">Google SafeBrowsing: <span style="color:${result.isPhish?'var(--red)':'var(--green)'}">${result.isPhish?'FLAGGED':'Clean'}</span></div>
+    <div style="font-size:12px;color:var(--text2);margin-top:6px">VirusTotal: <span style="color:${result.isPhish?'var(--red)':'var(--green)'}">${result.isPhish?'Multiple detections':'0/72'}</span></div>
+    <div style="font-size:12px;color:var(--text2);margin-top:4px">Domain age: <span class="mono" style="color:var(--yellow)">${result.isPhish?'< 30 days (NEW)':'Established'}</span></div>`;
+}
+
+// ─── QUIZ ─────────────────────────────────────────────────────────────────
+const QUIZ_Q=[
+  {q:'An email from "paypal-support@paypa1.com" asks you to verify your account. What should you do?',opts:['Click the link immediately to protect your account','Hover over the link to check the real URL first','Forward the email to colleagues as a warning','Reply with your account details'],ans:1,exp:'The domain "paypa1.com" uses a "1" instead of "l" — classic typosquatting. Always hover over links and check the real URL before clicking anything.'},
+  {q:'Which of these is the STRONGEST indicator that an email is a phishing attempt?',opts:['The email uses your first name','The email asks you to act within 24 hours or your account will be closed','The email contains a company logo','The email was sent at an unusual time'],ans:1,exp:'"Act within 24 hours or else" is a classic urgency manipulation tactic used to bypass rational thinking. Legitimate companies do not threaten immediate account closure.'},
+  {q:'You receive an email from your "CEO" asking you to buy $500 in gift cards urgently. This is:',opts:['Legitimate — CEOs make urgent requests all the time','A Business Email Compromise (BEC) / Whaling attack','Safe as long as you reply to confirm first','An IT phishing test you should ignore'],ans:1,exp:'This is a Business Email Compromise (BEC) or "Whaling" attack. Attackers impersonate executives to trick employees into financial transfers. Always verify via phone before any financial action.'},
+  {q:'A URL reads: "https://microsoft-login.secure-portal.xyz/verify". Is this safe?',opts:['Yes — it starts with https:// so it\'s encrypted and safe','Yes — it mentions Microsoft so it must be official','No — the actual domain is secure-portal.xyz, not microsoft.com','Cannot determine without clicking the link'],ans:2,exp:'The real domain is "secure-portal.xyz". "Microsoft-login" is just a subdomain used to make the URL look legitimate. HTTPS only means the connection is encrypted — not that the site is safe.'},
+  {q:'You receive an attachment called "Invoice_2024.pdf.exe". What is this?',opts:['A legitimate PDF invoice with extended format','A dual-extension trick to disguise an executable as a PDF','A compressed PDF file that needs a special viewer','A standard accounting file format'],ans:1,exp:'Double extensions like ".pdf.exe" are a common malware delivery trick. The file is actually an .exe (executable) that could install malware. Never open unexpected attachments.'},
+  {q:'What does SPF (Sender Policy Framework) help prevent?',opts:['Spam messages with offensive content','Emails from unauthorized servers impersonating a domain','Malware attachments in emails','Phishing links in email bodies'],ans:1,exp:'SPF is a DNS record that specifies which mail servers are authorised to send email on behalf of a domain. If an email fails SPF, the sender\'s domain is likely being spoofed.'},
+  {q:'Which action BEST protects against phishing?',opts:['Using a strong email password','Enabling 2FA and verifying unexpected requests via a second channel','Deleting all suspicious emails without reading them','Using antivirus software only'],ans:1,exp:'Multi-factor authentication (2FA) means even if your password is stolen via phishing, attackers can\'t log in. Verifying suspicious requests by phone or Slack prevents BEC attacks.'},
+];
+
+let currentQ=0, quizAnswers=[];
+function buildQuiz(){
+  if(currentQ===0)quizAnswers=[];
+  renderQuizQ();
+}
+function renderQuizQ(){
+  if(currentQ>=QUIZ_Q.length){showQuizResult();return;}
+  const q=QUIZ_Q[currentQ];
+  document.getElementById('quizArea').innerHTML=`
+    <div class="q-num">Question ${currentQ+1} of ${QUIZ_Q.length}</div>
+    <div style="background:var(--surf2);border-radius:var(--r);height:4px;margin-bottom:16px;overflow:hidden"><div style="height:100%;width:${((currentQ)/QUIZ_Q.length)*100}%;background:var(--blue);border-radius:99px;transition:width .4s"></div></div>
+    <div class="q-text">${q.q}</div>
+    ${q.opts.map((o,i)=>`<div class="quiz-opt" onclick="selectQuizAns(${i})"><input type="radio" name="qopt" value="${i}"> <span>${o}</span></div>`).join('')}`;
+}
+function selectQuizAns(idx){
+  const q=QUIZ_Q[currentQ];
+  const opts=document.querySelectorAll('.quiz-opt');
+  opts.forEach((o,i)=>{
+    o.style.pointerEvents='none';
+    if(i===q.ans)o.classList.add('correct');
+    if(i===idx&&idx!==q.ans)o.classList.add('wrong');
+  });
+  quizAnswers.push(idx===q.ans);
+  const expDiv=document.createElement('div');
+  expDiv.className='alert '+(idx===q.ans?'alert-green':'alert-red');
+  expDiv.style.marginTop='10px';
+  expDiv.innerHTML=`<strong>${idx===q.ans?'✓ Correct!':'✗ Incorrect'}</strong> ${q.exp}`;
+  document.getElementById('quizArea').appendChild(expDiv);
+  const nextBtn=document.createElement('button');
+  nextBtn.className='btn btn-blue';
+  nextBtn.style.marginTop='12px';
+  nextBtn.innerHTML=currentQ<QUIZ_Q.length-1?'<i class="ti ti-arrow-right"></i> Next Question':'<i class="ti ti-chart-bar"></i> See Results';
+  nextBtn.onclick=()=>{currentQ++;renderQuizQ();};
+  document.getElementById('quizArea').appendChild(nextBtn);
+}
+function showQuizResult(){
+  const score=quizAnswers.filter(Boolean).length;
+  const pct=Math.round(score/QUIZ_Q.length*100);
+  S.quizScore=pct; S.aware=pct; S.quizDone=true;
+  updateSidebar();
+  const col=pct>=80?'var(--green)':pct>=50?'var(--yellow)':'var(--red)';
+  const msg=pct>=80?'Excellent! You can confidently identify phishing attempts.':pct>=50?'Good, but review the questions you missed.':'You need more phishing awareness training.';
+  document.getElementById('quizArea').innerHTML=`
+    <div style="text-align:center;padding:20px 0">
+      <div style="font-size:52px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${col}">${pct}%</div>
+      <div style="font-size:18px;font-weight:600;margin:8px 0">${score}/${QUIZ_Q.length} Correct</div>
+      <div style="font-size:14px;color:var(--text2);margin-bottom:20px">${msg}</div>
+      <button class="btn btn-blue" onclick="currentQ=0;buildQuiz();S.quizDone=false;"><i class="ti ti-refresh"></i> Retake Quiz</button>
+    </div>
+    <table class="tbl" style="margin-top:16px">
+      <thead><tr><th>#</th><th>Question</th><th>Result</th></tr></thead>
+      <tbody>${QUIZ_Q.map((q,i)=>`<tr><td>${i+1}</td><td style="font-size:12px;color:var(--text2)">${q.q.substring(0,60)}…</td><td>${quizAnswers[i]?'<span style="color:var(--green)">✓</span>':'<span style="color:var(--red)">✗</span>'}</td></tr>`).join('')}</tbody>
+    </table>`;
+}
+
+// ─── Report ─────────────────────────────────────────────────────────────
+function generateReport(){
+  const pct=S.aware||0;
+  const circ=document.getElementById('ringCircle');
+  if(circ){circ.style.strokeDashoffset=264-(264*pct/100);document.getElementById('ringPct').textContent=pct+'%';}
+  const col=pct>=80?'#00d47e':pct>=50?'#f5c842':'#ff3d5a';
+  if(circ)circ.style.stroke=col;
+  const recs=pct>=80?'Team shows strong phishing awareness. Continue annual refresher training and update simulation templates.':pct>=50?'Several employees remain at risk. Schedule mandatory training for departments with high click rates. Reinforce reporting procedures.':'Immediate intervention required. Mandatory phishing awareness training for all staff. Increase simulation frequency to monthly.';
+  const reportEl=document.getElementById('reportRecommend');
+  if(reportEl)reportEl.innerHTML=`<strong style="color:${col}">Assessment:</strong> ${recs}`;
+
+  if(S.campaigns.length){
+    const statsEl=document.getElementById('reportStats');
+    const totalClicked=S.campaigns.reduce((a,c)=>a+c.clicked,0);
+    const totalSent=S.campaigns.reduce((a,c)=>a+c.sent,0);
+    if(statsEl)statsEl.innerHTML=`
+      <div class="g4" style="margin-bottom:12px">
+        <div class="sc red"><div class="sc-val">${totalSent}</div><div class="sc-lbl">Total Sent</div></div>
+        <div class="sc orange"><div class="sc-val">${totalClicked}</div><div class="sc-lbl">Total Clicked</div></div>
+        <div class="sc yellow"><div class="sc-val">${Math.round(totalClicked/totalSent*100)||0}%</div><div class="sc-lbl">Avg Click Rate</div></div>
+        <div class="sc green"><div class="sc-val">${S.campaigns.length}</div><div class="sc-lbl">Campaigns</div></div>
+      </div>`;
+    const fr=document.getElementById('fullReport');
+    if(fr)fr.innerHTML=`<table class="tbl"><thead><tr><th>Campaign</th><th>Template</th><th>Group</th><th>Sent</th><th>Clicked</th><th>Click Rate</th><th>Date</th></tr></thead><tbody>${S.campaigns.map(c=>`<tr><td>${c.name}</td><td>${c.tmpl}</td><td>${c.group}</td><td>${c.sent}</td><td style="color:var(--red)">${c.clicked}</td><td><span class="badge ${c.cr>30?'b-crit':c.cr>15?'b-high':'b-low'}">${c.cr}%</span></td><td>${c.date}</td></tr>`).join('')}</tbody></table>`;
+  }
+}
+
+function downloadReport(){
+  const txt=`PHISHING SIMULATION & DETECTION REPORT
+Generated: ${new Date().toLocaleString()}
+Tool: PhishGuard v3.1 — Educational Platform
+
+═══════════════════════════════════════
+CAMPAIGN SUMMARY
+═══════════════════════════════════════
+Total Campaigns: ${S.campaigns.length}
+Total Emails Sent: ${S.sent}
+Total Links Clicked: ${S.clicked}
+Credentials Submitted: ${S.creds}
+Overall Click Rate: ${S.sent?Math.round(S.clicked/S.sent*100):0}%
+Awareness Rate: ${S.aware}%
+
+CAMPAIGN DETAILS
+───────────────
+${S.campaigns.map((c,i)=>`[${i+1}] ${c.name}
+    Template: ${c.tmpl} | Group: ${c.group} | Difficulty: ${c.diff}
+    Sent: ${c.sent} | Clicked: ${c.clicked} | Click Rate: ${c.cr}%
+    Date: ${c.date}`).join('\n\n')||'No campaigns run.'}
+
+AWARENESS QUIZ SCORE
+────────────────────
+Score: ${S.quizScore||'Not taken'}%
+
+DETECTION MECHANISMS IMPLEMENTED
+──────────────────────────────────
+• Keyword-based phishing detection
+• Sender domain & TLD analysis
+• SPF / DKIM / DMARC verification
+• URL threat intelligence scanning
+• Brand impersonation detection
+• Python email filter (phishing_filter.py)
+• Real-time URL scanner (url_scanner.py)
+• Email header analyzer (email_header_analyzer.py)
+
+RECOMMENDATIONS
+───────────────
+1. Run phishing simulations monthly for high-risk departments
+2. Mandatory awareness training for all employees who clicked
+3. Implement SPF, DKIM, DMARC on all company mail domains
+4. Deploy URL filtering proxy for all outbound/inbound traffic
+5. Establish a clear "Report Phishing" button and escalation path
+6. Enforce 2FA on all corporate accounts
+
+DISCLAIMER
+──────────
+This report was generated by an educational simulation platform.
+All campaigns were conducted in a safe, controlled environment.
+Always obtain proper authorization before conducting phishing
+simulations in a real organization.
+`;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));
+  a.download=`phishguard-report-${Date.now()}.txt`;
+  a.click();
+}
+
+// ─── Spoof Preview ─────────────────────────────────────────────────────────
+function updateSpoofPreview(){
+  const brand=document.getElementById('spoofBrand').value;
+  const domain=document.getElementById('spoofDomain').value;
+  const previews={
+    paypal:`<div class="email-preview"><div class="ep-header" style="background:#003087;border:none;padding:14px"><div style="color:#fff;font-size:20px;font-weight:700">PayPal</div></div><div class="ep-body" style="background:#f5f5f5;padding:20px"><div style="background:#fff;border-radius:6px;padding:20px;max-width:360px;margin:0 auto;text-align:center"><h2 style="color:#003087;margin-bottom:12px">Log in to your account</h2><input type="text" placeholder="Email" style="width:100%;padding:9px;border:1px solid #ccc;border-radius:4px;margin-bottom:8px;font-size:13px"><input type="password" placeholder="Password" style="width:100%;padding:9px;border:1px solid #ccc;border-radius:4px;margin-bottom:12px;font-size:13px"><button class="ep-btn-fake" style="width:100%;background:#0070ba;padding:10px;border:none;cursor:pointer">Log In</button><p style="font-size:10px;color:#999;margin-top:10px">Hosted on: <strong style="color:#e74c3c">${domain}</strong> (NOT paypal.com)</p></div></div><div class="ep-red">⚠️ This is a FAKE PayPal login. Entering credentials here sends them to the attacker at ${domain}</div></div>`,
+    google:`<div class="email-preview"><div class="ep-header" style="background:#fff;border-bottom:1px solid #e0e0e0;padding:14px;text-align:center"><span style="color:#4285f4;font-size:24px;font-weight:700">G</span><span style="color:#ea4335;font-size:24px;font-weight:700">o</span><span style="color:#fbbc04;font-size:24px;font-weight:700">o</span><span style="color:#4285f4;font-size:24px;font-weight:700">g</span><span style="color:#34a853;font-size:24px;font-weight:700">l</span><span style="color:#ea4335;font-size:24px;font-weight:700">e</span></div><div class="ep-body" style="background:#fff;padding:20px;text-align:center"><h3 style="color:#202124;margin-bottom:6px">Sign in</h3><p style="font-size:13px;color:#5f6368;margin-bottom:14px">Use your Google Account</p><input type="email" placeholder="Email or phone" style="width:100%;padding:10px;border:1px solid #dadce0;border-radius:4px;margin-bottom:10px;font-size:13px"><button class="ep-btn-fake" style="background:#1a73e8;padding:10px 20px;border:none;cursor:pointer">Next</button><p style="font-size:10px;color:#999;margin-top:10px">URL bar shows: <strong style="color:#e74c3c">${domain}</strong></p></div><div class="ep-red">⚠️ FAKE Google login. The URL bar would show "${domain}" not accounts.google.com</div></div>`,
+    microsoft:`<div class="email-preview"><div class="ep-header" style="background:#0078d4;padding:12px"><div style="color:#fff;font-size:16px;font-weight:600">Microsoft</div></div><div class="ep-body" style="background:#f2f2f2;padding:20px"><div style="background:#fff;padding:24px;max-width:360px;margin:0 auto"><h2 style="font-size:16px;color:#1b1b1b;margin-bottom:16px">Sign in</h2><input type="email" placeholder="Email, phone, or Skype" style="width:100%;padding:8px;border:1px solid #8a8886;margin-bottom:10px;font-size:13px"><button class="ep-btn-fake" style="background:#0078d4;padding:8px 16px;border:none;cursor:pointer">Next</button><p style="font-size:10px;color:#999;margin-top:12px">Domain: <strong style="color:#e74c3c">${domain}</strong> ≠ login.microsoft.com</p></div></div><div class="ep-red">⚠️ Fake Microsoft 365 login capturing Office credentials</div></div>`,
+    amazon:`<div class="email-preview"><div class="ep-header" style="background:#131921;padding:12px"><div style="color:#ff9900;font-size:20px;font-weight:700">amazon</div></div><div class="ep-body" style="background:#fff;padding:20px"><h3 style="margin-bottom:12px">Sign in</h3><input type="email" placeholder="Email or mobile phone number" style="width:100%;padding:8px;border:1px solid #ccc;margin-bottom:8px;font-size:13px"><input type="password" placeholder="Password" style="width:100%;padding:8px;border:1px solid #ccc;margin-bottom:12px;font-size:13px"><button class="ep-btn-fake" style="background:#f0c14b;color:#111;padding:8px;width:100%;border:1px solid #a88734;cursor:pointer">Sign in</button><p style="font-size:10px;color:#999;margin-top:10px">Fake site: <strong style="color:#e74c3c">${domain}</strong></p></div><div class="ep-red">⚠️ Fake Amazon login — note yellow sign-in button is authentic-looking but domain is ${domain}</div></div>`,
+    bank:`<div class="email-preview"><div class="ep-header" style="background:#003366;padding:14px"><div style="color:#fff;font-size:18px;font-weight:700">🏦 SecureBank</div></div><div class="ep-body" style="padding:20px;background:#f9f9f9"><div style="background:#fff;padding:20px;border-radius:6px;border:1px solid #ddd"><h3 style="color:#003366;margin-bottom:14px">Online Banking Login</h3><input type="text" placeholder="Account Number" style="width:100%;padding:9px;border:1px solid #ccc;margin-bottom:8px;font-size:13px"><input type="password" placeholder="PIN / Password" style="width:100%;padding:9px;border:1px solid #ccc;margin-bottom:12px;font-size:13px"><button class="ep-btn-fake" style="background:#003366;width:100%;padding:10px;border:none;cursor:pointer">Login Securely</button><p style="font-size:10px;color:#999;margin-top:8px">URL: <strong style="color:#e74c3c">${domain}</strong> — not a real bank domain</p></div></div><div class="ep-red">⚠️ Generic bank phishing page — designed to harvest account numbers and PINs</div></div>`,
+  };
+  document.getElementById('spoofPreview').innerHTML=previews[brand]||previews.paypal;
+}
+
+// ─── Python tabs ──────────────────────────────────────────────────────────
+function switchPyTab(name,btn){
+  document.querySelectorAll('.py-tab').forEach(t=>t.style.display='none');
+  document.getElementById('py-'+name).style.display='block';
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────
+buildFilterRules();
+updateSpoofPreview();
+updateDeptChart();
+</script>
+</body>
+</html>
